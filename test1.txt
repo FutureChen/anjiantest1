@@ -1,0 +1,2536 @@
+﻿'####################################以下井号内的内容需要设为全局（放在代码最顶端）
+Import "haoi.lua"  //必须加载，记的这插件 【一定要】放在按键手机版的plugin文件夹下 然后再【添加附件】
+Dim HaoHOST=""  //必须声明
+Dim HaoRebate ="2474|519EDB47581C5247" //返利软件key，请修改成自己的才有返利，需要在作者会员中心 - 我的软件 - 添加。必须声明此变量
+Dim HaoTid = ""	//为全局HSendFile的参数声明，记录最近发的题目的流水号
+Dim Reply="" 	// //为SendFileEx的返回值声明
+'####################################以上井号内的内容需要设为全局（放在代码最顶端）
+
+Import "ShanHai.lua"
+Import "File.lua"
+
+Dim system_ios=False
+Dim scriptNumber
+Dim scriptVersion="1.0.0"
+If system_ios = True Then 
+    scriptNumber=20170214100701
+Else 
+    scriptNumber=20170203142434
+End If
+
+//--------------------------------------------------------配置项-----------------------------------------------
+Dim win_x,win_y,win_w,win_h
+win_x = GetScreenX()
+win_y = GetScreenY()
+Dim 一键升级 = ReadUIConfig("一键升级")
+Dim 喊话功能 = ReadUIConfig("喊话功能")
+Dim 喊话内容 = ReadUIConfig("喊话内容")
+Dim 延时 = ReadUIConfig("延时")
+Dim 自动换区 = ReadUIConfig("自动换区")
+Dim 喊话换区次数 = ReadUIConfig("喊话换区次数")
+Dim 当前换区次数=0
+Dim 当前喊话次数=0
+Dim continuecount = 0
+
+
+
+
+       
+  
+//-------------------------------通用方法-------------------------------------
+Dim 升级完成_多点比色值="623|143|3CB8D7,614|144|3EA7C2,623|148|3BC3E6,618|151|3EA1BB,625|156|3DACC9,621|157|3DAECB"
+
+Dim 聊天界面_多点比色值="319|615|DBB278,245|607|775E45,95|461|837262,69|565|756554,96|567|503F2E"
+Dim 退出聊天界面_坐标= Array(246,605, 30, 30, "退出聊天界面")
+Dim 主界面_多点比色值="579|3|6F6F6F,586|113|066AAE,589|195|1E1D2D,122|355|807068,26|1092|5E678A,584|1029|764313"
+
+Dim 全局关闭按钮_多点找色值=Array("354F75","41|41|8596D6,4|38|111A5F,31|10|56ABCD,30|32|71B4D9,10|29|2F79AB")
+Dim 通用返回_多点找色值=Array("1D1615","10|38|585D4F,27|108|7D6442,40|39|D6BD8D,49|125|171111,39|85|A28156")
+Dim 通用确定_多点找色值=Array("")
+
+Dim 主线任务_坐标=Array(73,1068,10,10,"主线任务栏坐标")
+Dim 对话框_多点比色值="153|263|8D8D8D,153|475|737373,147|280|272727,157|451|7A7A7A,153|453|292929,154|290|5B5B5B"
+Dim 对话框2_多点比色值="153|653|7B7A7A,154|865|676767,150|679|4F4F4F,155|841|CACACA,150|846|434343,152|679|2C2C2C"
+Dim 对话框_坐标=Array(52,781,30,80,"对话框剧情_坐标")
+
+Dim 战斗中_多点比色值="578|419|3D352D,606|427|1D151D,599|560|8EB5D3,612|723|1D1515,607|563|12126E"
+Dim 战斗胜利_多点比色值="524|405|F8F8F8,484|425|6980AE,480|324|192A4B,487|730|506296,489|815|2F4E65,480|933|1F3771"
+Dim 战斗胜利_坐标=Array(93,754,30,30,"战斗胜利")
+Dim 战斗失败_多点比色值="517|451|3C4A6A,480|442|3E3E3E,519|525|3B3B4D,482|649|404037,514|675|617283"
+Dim 已托管_多点比色值 =""
+Dim 托管战斗_坐标=Array(296,533,40,40,"托管战斗_坐标")
+    
+Dim 跳过剧情_多点比色=""
+Dim 跳过剧情_坐标=Array(591,963,30,80,"跳过剧情")
+
+Function 点击全局关闭按钮()
+    点击全局关闭按钮=False
+    Dim  point = 多点找色(0, 568, 640, 1136, 全局关闭按钮_多点找色值, 4)
+    If point(0) > -1 And point(1) > -1 Then 
+        点击 (Array(point(0), point(1), 5, 20, "全局关闭按钮"))
+        Delay 随机(1000, 2000)
+        点击全局关闭按钮=True
+    End If
+End Function
+
+Function 点击通用返回按钮()
+    点击通用返回按钮=False
+    Dim point = 多点找色(0,0,640,1136, 通用返回_多点找色值, 4)
+    If point(0) > -1 And point(1) > -1 Then 
+        点击 (Array(point(0)+5, point(1)+5, 30, 30, "点击通用返回按钮"))
+        Delay 随机(2000, 3000)
+        点击通用返回按钮=True
+    End If
+End Function
+
+Function 点击通用确定按钮()
+    点击通用确定按钮=False
+    Dim point = 多点找色(0,0,640,1136, 通用确定_多点找色值, 4)
+    If point(0) > -1 And point(1) > -1 Then 
+        点击 (Array(point(0)+5, point(1)+5, 30, 30, "点击通用确定按钮"))
+        Delay 随机(2000, 3000)
+        点击通用确定按钮=True
+    End If
+End Function
+
+
+Function 随便点点()
+    点击 (Array(320,512, 20, 20, "随便点点"))
+    Delay 随机(1500, 2500)
+End Function
+
+
+Function 点击主线任务栏()
+    点击 (主线任务_坐标)
+    Delay 随机(1500, 2500)
+End Function
+
+Function 点击对话框
+    Dim 还有对话框 =True
+    While 还有对话框
+        If 多点比色(对话框_多点比色值) or 多点比色(对话框2_多点比色值) Then 
+            点击 (对话框_坐标)
+            Delay 随机(500, 800)
+        Else 
+            还有对话框=False
+        End If	
+    Wend
+End Function
+
+Dim 引导妹子对话_多点比色值="391|114|6C9FE3,369|118|ECF4FF,335|134|D7E8FF,244|167|CCDCF5,94|100|0A0A12,94|100|0A0A12"
+Function 点击引导妹子对话框
+    Dim 还有对话框 =True
+    While 还有对话框
+        If 多点比色(引导妹子对话_多点比色值) Then 
+            点击 (Array(108,357,30,30,"引导妹子对话框"))
+            Delay 随机(500, 800)
+        Else 
+            还有对话框=False
+        End If	
+    Wend
+End Function
+
+Function 点击跳过剧情
+    点击跳过剧情=False
+    If 多点比色(跳过剧情_多点比色) Then 
+        点击 (跳过剧情_坐标)
+        Delay 随机(1500, 2000)
+        点击跳过剧情=True
+    End If
+End Function
+
+Dim 没加速_多点比色值="74|52|A19680,75|50|A29981,76|70|AC9C8B,80|79|B4A493,69|79|9B927A,58|80|968574"
+Dim 已经加速_坐标=Array(49,37,30,30,"托管战斗_坐标")
+Function 战斗界面中
+    战斗界面中=False
+    If 多点比色(战斗中_多点比色值) Then 
+        //        If 多点比色(已托管_多点比色值) Then 
+        //        Else 
+        //            点击 (托管战斗_坐标)
+        //            Delay 随机(2000, 3000)
+        //        End If
+        If 多点比色(没加速_多点比色值) Then 
+            点击 (已经加速_坐标)
+            Delay 随机(2000, 3000)
+        End If
+   
+            
+            
+        TracePrint("托管战斗中...")
+        Delay 5000
+        战斗界面中=True
+    End If
+End Function
+
+Dim findFigureCount=0
+Function 全图找手指()
+
+    全图找手指 = False
+    Dim findTarget=False
+  
+    //截图至内存中,后续执行GetPixelColor、FindColor、FindPic等图色函数的时候,
+    //    KeepCapture
+
+
+    Dim  point = 多点找色(0, 0, 640, 1136,Array("ECE9EA","1|4|9A9EA4,-32|25|B6ADB7,-20|31|B2A7B5,-6|31|938A9A,-12|11|E9E5E6"), 0)
+    If point(0) > -1 And point(1) > -1 Then 
+        点击 (Array(point(0), point(1),5, 5, "全图找手指小"))
+        Delay 随机(1800, 2500)
+        全图找手指 = True
+        findTarget=True
+    Else 
+        TracePrint "没找到全图找手指小"
+        findTarget=False
+    End If
+    
+    If findTarget = False Then 
+        point = 多点找色(0, 0, 640, 1136, Array("E0DCDF","-24|26|EBE8EA,-12|35|A9A0AE,-2|38|F1E7E5,-5|40|9F95A8"), 0)
+        If point(0) > -1 And point(1) > -1 Then 
+            点击 (Array(point(0), point(1), 5, 5, "全图找手指改造中心"))
+            Delay 随机(1500, 2500)
+            全图找手指 = True
+            findTarget=True
+        Else 
+            TracePrint "没找到手指改造中心"
+            findTarget=False
+        End If
+    End If
+
+    If findTarget = False Then 
+        point = 多点找色(0, 0, 640, 1136, Array("60|349|D2CDD1,44|377|FAF8F7,45|388|C7B8BB,53|392|B4AAB4,58|382|BFB6BE"), 0)
+        If point(0) > -1 And point(1) > -1 Then 
+            点击 (Array(point(0), point(1), 5, 5, "全图找手指下排"))
+            Delay 随机(1500, 2500)
+            全图找手指 = True
+            findTarget=True
+        Else 
+            TracePrint "没找到全图找手指下排"
+            findTarget=False
+        End If
+    End If
+    
+    
+    If findTarget = False Then 
+        point = 多点找色(0, 0, 640, 1136, Array("CDC7CD","-6|-1|B7B1BA,-55|-13|968E9A,-34|-23|AD9FAB,-39|-16|A89DAE,-67|-43|EEDFD9"), 0)
+        If point(0) > -1 And point(1) > -1 Then 
+            点击 (Array(point(0), point(1), 5, 5, "全图找手指右谍报中心"))
+            Delay 随机(1500, 2500)
+            全图找手指 = True
+            findTarget=True
+        Else 
+            TracePrint "没找到手指右谍报中心"
+            findTarget=False
+        End If
+    End If
+    
+    If findTarget = False Then 
+        point = 多点找色(0, 0, 640, 1136, Array("CDC8CE","5|-4|F3EFEF,5|-8|C5BEC3,24|-34|B7A6AE,17|-39|A69EAD"), 0)
+        If point(0) > -1 And point(1) > -1 Then 
+            点击 (Array(point(0), point(1), 5, 5, "全图找手指右下小"))
+            Delay 随机(1500, 2500)
+            全图找手指 = True
+            findTarget=True
+        Else 
+            TracePrint "没找到手指右下小"
+            findTarget=False
+        End If
+    End If
+    
+    //       "DCD7DA","-28|-14|FAFAFA,-44|-7|A79DAC,-63|-3|968D9B,-80|-28|EBDAD3,-33|-26|C7C0C7"
+    If findTarget = False Then 
+        point = 多点找色(0, 0, 640, 1136, Array("E5E1E3","-1|-1|ECE8E9,-42|-6|B4A9B5,-63|-3|8D8593,-72|-27|EDDDD9"), 0)
+        If point(0) > -1 And point(1) > -1 Then 
+            点击 (Array(point(0), point(1), 5, 5, "全图找手指右上小"))
+            Delay 随机(1500, 2500)
+            全图找手指 = True
+            findTarget=True
+        Else 
+            TracePrint "没找到手指右上小"
+            findTarget=False
+        End If
+    End If
+    
+    If findTarget = False Then 
+        point = 多点找色(0, 0, 640, 1136, Array("BEB9C1","-3|-4|F4F1F1,-22|-13|BBB5BF,-39|-23|B5A8B0,-34|-7|998F9F,-46|-9|CFC2C6"), 0)
+        If point(0) > -1 And point(1) > -1 Then 
+            点击 (Array(point(0), point(1), 5, 5, "全图找手指右造船中心"))
+            Delay 随机(1500, 2500)
+            全图找手指 = True
+            findTarget=True
+        Else 
+            TracePrint "没找到手指造船中心"
+            findTarget=False
+        End If
+    End If
+
+
+
+    If findTarget = False Then 
+        point = 多点找色(0, 0, 640, 1136, Array(    "D1CACF","-36|29|C7BFC5,-21|33|C8BEC6,-14|39|E2DAD7,-9|33|9E95A3,-11|47|DDD4D4"), 0)
+        If point(0) > -1 And point(1) > -1 Then 
+            点击 (Array(point(0), point(1), 5, 5, "全图找手指2"))
+            Delay 随机(1500, 2500)
+            全图找手指 = True
+            findTarget=True
+        Else 
+            TracePrint "没找到手指2"
+            findTarget=False
+        End If
+    End If
+
+    If findTarget = False Then 
+        point = 多点找色(0, 0, 640, 1136, Array("D5D1D4","27|16|F3F0F0,39|27|DAD0D2,46|26|A097A4,58|17|8B8391,60|43|E9DBD6"), 0)
+        If point(0) > -1 And point(1) > -1 Then 
+            点击 (Array(point(0), point(1), 5, 5, "全图找手指左下"))
+            Delay 随机(1500, 2500)
+            全图找手指 = True
+            findTarget=True
+        Else 
+            TracePrint "没全图找手指左下"
+            findTarget=False
+        End If
+    End If
+
+    //
+
+
+    If findTarget = True Then//防止吴找，一直卡死在这里循环 
+        findFigureCount = findFigureCount + 1
+    Else 
+        findFigureCount=0
+    End If
+    If findFigureCount > 6 Then 
+        全图找手指=False
+    End If
+    //删除内存中的截图，并恢复正常屏幕画面的图色操作
+    //    ReleaseCapture
+    //    TracePrint "这里开始恢复即时屏幕画面的查找了"
+End Function
+
+//从最后一个往前点服务器，越后面的越新,index从0开始
+Function 点击最新服务器(index)
+	
+
+    点击最新服务器=0
+    Dim 服务器标志1_多点找色值=Array("44A765","-18|23|1F7940,18|-14|4FBA78,2|24|369158,-7|16|9EFDFD")
+    Dim 服务器标志2_多点找色值=Array("3F3F8A","23|-23|5F5FB4,-16|21|1E1E7D,5|21|333391,0|17|AEF2FF")
+
+    Dim firstx=389
+    Dim firsty=375
+    
+    Dim width=66//按钮包括间距的宽
+    Dim height=331
+    Dim btnReallyWidth=60//按钮的大概大小，用来限制在这个范围内查找服务器是否可用
+    Dim btnReallyHeight=350
+    
+    Dim column=2
+
+    Dim aPageSerCount=7//一页有几个区，记得index从0开始-1
+    
+    Dim validIndex=-1
+    dim  tempPoint
+    For  i= 0 To aPageSerCount Step 1
+
+        Dim tempColumn=i Mod column
+        Dim tempLine=int(i/column)
+    
+        Dim y=firsty+ tempColumn*height
+    
+        Dim x=firstx-tempLine*width
+        
+        Dim frameWidth= x + btnReallyWidth
+        
+        Dim frameHeight=y + btnReallyHeight
+        
+        tempPoint = 多点找色(x, y, frameWidth, frameHeight, 服务器标志1_多点找色值, 0)
+        If tempPoint(0) > -1 And tempPoint(1) > -1 Then 
+            validIndex = validIndex + 1
+        Else 
+            tempPoint = 多点找色(x, y,  frameWidth,frameHeight, 服务器标志2_多点找色值, 0)
+            If tempPoint(0) > -1 And tempPoint(1) > -1 Then 
+                validIndex=validIndex+1
+            Else 
+                TracePrint "这个位置没按钮" ,i ,x,y,frameWidth,frameHeight
+            End If
+        End If
+        点击最新服务器 = validIndex
+        If validIndex=index Then 
+            点击 (Array(tempPoint(0), tempPoint(1), 10, 10, "点击选择服务器"))
+            TracePrint x,y,validIndex
+            Delay 随机(1500, 2500)
+            Exit For
+        End If
+    Next
+	
+End Function
+
+Function 选服务器
+    Dim  tempPoint
+    If (定时循环多点比色("528|178|459AC6,527|185|4599C5,525|225|459AC6,525|254|459AC6,535|424|459AC6,529|580|459AC6", 5,0)) Then 
+        //选择服务器界面
+        Dim 服务器 = ReadUIConfig("服务器选择")
+        Dim chooseIndex=服务器-1
+
+        Dim 选区选项卡1x=395
+        Dim 选区选项卡y=140
+        Dim 选项卡index=0
+        Dim 选项卡xWidth=48//包括间隔
+      
+        Rem chooseSerCycle
+        Dim success=False
+        dim useIndex= 点击最新服务器 (chooseIndex)
+        If useIndex = chooseIndex Then 
+            success=True
+        End If
+
+        If success=False Then //如果当前选项卡你没有这个大区，切换选项卡
+            chooseIndex = chooseIndex - useIndex
+            If chooseIndex > 0 Then 
+                选项卡index = 选项卡index + 1
+                点击 (Array(选区选项卡1x-选项卡index*选项卡xWidth,选区选项卡y, 30, 30, "选区选项卡下移"))//下移一个大区
+                Delay 4000
+                Goto chooseSerCycle
+            Else 
+                While True
+                    ShowMessage "选择大区出现问题，没有那么多可用服务器！！"
+                Wend
+            End If
+                
+        End If
+    End If
+    
+    If success = False Then 
+        While True
+            ShowMessage ("选取服务器有问题，请重试")
+            Delay 3000
+        Wend
+    Else 
+        //        点击 (Array( 78,451, 30, 30, "选区服务器开始游戏"))
+    End If
+	
+End Function
+
+//_____________________________Game functions_____________________________________
+
+Dim 可开始扫荡=False
+Dim 章节选择界面_多点比色值="49|413|4D4D4D,50|515|505050,59|543|66594D,303|1117|8C7147,626|1063|B59A69"
+Dim 北海副本_坐标=Array(424,844,30,30,"北海副本_坐标")
+Dim 返回_坐标=Array(588,1023,30,30,"返回_坐标")       
+            
+Function 重置全局变量
+    可开始扫荡 = False
+    已特工招聘=False
+End Function
+
+Function 领取宝石()
+    Dim 日常活动_多点找色值=Array("6ABEEC","31|7|72C5E1,25|50|3F60ED,28|61|5791C2,42|64|1131BD")
+    Dim 日常活动界面_多点比色值="624|66|74A5E6,625|81|7EBFE3,618|73|263475,19|63|334B8B,13|79|89D3F4,603|1101|50A3C4"
+    Dim 日常活动界面关闭_坐标=Array(583,1080,15,15,"日常活动界面关闭_坐标")
+       
+    Dim 等级奖励_多点找色值=Array("17208F","11|9|C3E6EC,72|3|79CBEC,57|39|53CAFF,33|91|55224D") 
+     
+    dim 可领取按钮_多点比色值="333|861|2B96C6,366|1003|03467F,347|877|0D94E9,350|987|2A82AA,348|952|78EEFF" 
+    If system_ios = True Then 
+        可领取按钮_多点比色值="336|863|2B6390,351|877|B6EDFF,350|987|226E92,366|1003|0F3B71,350|953|92FEFF"
+    End If
+    
+    Dim 可领取按钮_坐标=Array(331,857,30,30,"可领取按钮_坐标")
+     
+    Dim 奖励3_坐标=Array(47,771,15,15,"奖励3_坐标")
+     
+  
+/*
+   If 多点比色(战斗失败_多点比色值) Then 
+        点击 (返回_坐标)
+        Delay 随机(1500, 2000)
+        Goto restart
+    End If
+        
+    point = 多点找色(0,0,0,0, 最新副本_多点找色值, 2)
+    If point(0) > -1 And point(1) > -1 Then 
+        点击 (Array(point(0)+20, point(1)+20, 0, 0, "引导左下框"))
+        Delay 随机(2000, 3000)
+        Goto restart
+    End If
+    */
+    Dim  point =  定时循环多点找色(420,0,573,741, 日常活动_多点找色值, 2,3,-1)
+    If point(0) > -1 And point(1) > -1 Then 
+        点击 (Array(point(0), point(1), 0, 0, "日常活动_多点找色值"))
+        Delay 随机(3500, 4500)
+        
+        If 定时循环多点比色(日常活动界面_多点比色值, 4, 0) Then 
+            连续滑动 Array(90, 66, 1, 1), Array(524, 63, 1, 1), 2
+            Delay 3000
+	  
+            point = 多点找色(3,0,639,173, 等级奖励_多点找色值, 3)
+            If point(0) > -1 And point(1) > -1 Then 
+                点击 (Array(point(0)+20, point(1)+20, 0, 0, "等级奖励_多点找色值"))
+                Delay 随机(3000, 3500)
+                Rem lingqurestart
+                Dim lingqucycle=0
+                If 定时循环多点比色(可领取按钮_多点比色值,3,-1) and lingqucycle<5  Then 
+                    点击 (可领取按钮_坐标)
+                    Delay  随机(3500, 4000)
+                    点击 (Array(102, 377, 30, 30, "任意位置继续"))
+                    Delay 随机(2500, 3500)
+                    lingqucycle=lingqucycle+1
+                    
+                    Goto lingqurestart
+                End If
+                
+                点击 日常活动界面关闭_坐标
+                Delay 随机(3000, 3500)
+            Else 
+                TracePrint "没找到等级奖励选项"
+            End If
+        Else 
+            TracePrint  "没有找到日常活动界面"
+        End If
+    Else 
+        TracePrint  "没有找到日常活动按钮"
+    End If
+    Delay 3000
+	
+    //领取战役奖励50
+    //    点击主线任务栏()
+    //    Delay 随机(2500, 3500)
+    //    If 定时循环多点比色(章节选择界面_多点比色值, 4, -1) Then 
+    //        点击 北海副本_坐标
+    //        Delay 随机(4000, 4500)
+    //        点击 奖励3_坐标
+    //        Delay  随机(3500, 4000)
+    //        点击 (Array(102, 377, 30, 30, "任意位置继续"))
+    //        Delay 随机(2500, 3500)
+    //        点击 返回_坐标
+    //        Delay 随机(3500, 4000)
+    //        点击 返回_坐标
+    //        Delay  随机(3500, 4000)
+    //    End If
+	  
+    Delay 3000
+End Function
+
+dim 可添加新舰_多点比色值="50|333|1CD374,28|359|19BD60,55|382|897970,79|361|A49989,90|384|1F1F1F"
+Dim 可添加新舰_多点找色值=Array("B6A594","37|89|20E582,38|134|26D77D,44|91|8F7E75,14|114|19B55B")
+Dim 添加船只_坐标=Array(18,261,30,30,"添加船只_坐标")
+Dim 上阵船只_坐标=Array(449,818,30,30,"上阵船只_坐标")
+Function 添加船只
+
+
+    Dim 基地_坐标=Array(	109,197,30,30,"基地_坐标")
+    Dim 舰队_坐标=Array(110,57,30,30,"舰队_坐标")
+    Dim 造船厂_坐标=Array(	30,37,30,30,"造船厂_坐标")
+    Dim 船只生成_坐标=Array(	22,971,30,30,"船只生成_坐标")
+
+
+	    
+   
+	 
+	  
+	      
+	    
+    点击 基地_坐标
+    Delay 随机(3500, 4000)
+    点击 造船厂_坐标
+    Delay 随机(3500, 4000)
+    点击 船只生成_坐标
+    Delay 随机(3500, 4000)
+    点击 船只生成_坐标
+    Delay 随机(3500, 4000)
+    点击 返回_坐标
+    Delay 随机(3500, 4000)
+     
+    点击 舰队_坐标
+    Delay 随机(3500, 4000)
+    dim   point = 多点找色(0,0,0,0, 可添加新舰_多点找色值, 0)
+    If point(0) > -1 And point(1) > -1 Then 
+        点击 (Array(point(0)+20, point(1)+20, 0, 0, "可添加新舰_多点找色值"))
+        //        点击 添加船只_坐标
+        Delay 随机(4000, 4500)
+        点击 上阵船只_坐标
+        Delay 随机(4000, 4500)
+    End If
+
+End Function
+
+Function 提升舰只
+
+    提升舰只=False
+
+    Dim 改装_坐标=Array(173,37,30,30,"改装_坐标")
+ 
+    Dim 升级_坐标=Array(26,766,30,30,"升级_坐标")
+    
+    Dim 改造中心船只_多点比色值="617|62|70B2D1,606|74|70B2D1,611|162|70B2D1,527|26|66A8D1,562|59|5DCEF5"
+    Dim 改造中心配件_多点比色值="617|66|70B2D1,616|76|70B2D1,598|91|69A6C5,458|24|52B5E8,435|62|56BEEE"
+    Dim 改造中心配件_坐标=Array(395,7,30,30,"改造中心配件_坐标")
+    
+    Dim 改造中心左箭头_坐标=Array(277,124,10,10,"改造中心左箭头_坐标")
+    Dim 改造中心右箭头_坐标=Array(272,677,10,10,"改造中心右箭头_坐标")
+        
+    Dim 一键装备_坐标=Array(27,133,30,30,"一键装备_坐标")
+    Dim 全部升级_坐标=Array(28,568,30,30,"全部升级_坐标")
+    
+    If 定时循环多点比色(主界面_多点比色值, 3, -1) Then 
+        
+        Do Until 多点比色(改造中心_多点比色值)
+            点击 改造中心按钮_坐标
+            Delay 随机(2000, 3000)
+        Loop
+        TracePrint  "进入","改造中心_多点比色值"
+  
+        
+        //        Dim 舰3y=717
+        //        Dim 舰按钮高=238
+        //        For i = 0 To 3 Step 1
+        //            Dim 升级舰_坐标=Array(10,舰3y-舰按钮高*i,30,30,"升级舰_坐标")
+        //            点击 升级舰_坐标
+        //            Delay 2500
+        //            点击 一键装备_坐标
+        //            Delay 随机(3000,3500)
+        //        Next
+
+        Do Until 多点比色(改造中心船只_多点比色值)
+            点击 改装_坐标
+            Delay 随机(2000, 3000)
+        Loop
+        TracePrint  "进入","改造中心船只_多点比色值"
+
+
+      
+        
+        Dim 升级舰4x=11
+        Dim 升级舰按钮宽=145
+        For i = 0 To 3 Step 1
+            点击 Array(升级舰4x+升级舰按钮宽*i,182,30,30,"舰升级界面_坐标")
+            Delay 随机(3000,3500)
+            连续点击 升级_坐标,6, 1000
+            Delay 随机(3000, 3500)
+        Next
+        滑动  Array(480, 374, 30, 30),Array(70, 286, 30, 30)
+        Delay 随机(2000, 3000)
+        For i = 0 To 3 Step 1
+            点击 Array(升级舰4x+升级舰按钮宽*i,182,30,30,"舰升级界面_坐标")
+            Delay 随机(3000,3500)
+            连续点击 升级_坐标, 6, 1000
+            Delay 随机(3000, 3500)
+        Next
+        
+        Do Until 多点比色(改造中心配件_多点比色值)
+            点击 改造中心配件_坐标
+            Delay 随机(2000, 3000)
+        Loop
+        TracePrint  "进入","改造中心配件_多点比色值"
+        
+        连续点击 改造中心左箭头_坐标,5,1000
+        Delay 随机(2000, 3000)
+        
+        For i = 0 To 5 Step 1
+            点击 一键装备_坐标
+            Delay 随机(2000, 3000)
+            点击 全部升级_坐标
+            Delay 随机(2000, 3000)
+            点击 改造中心右箭头_坐标
+            Delay 随机(2000, 3000)
+        Next
+        
+        
+        点击 (返回_坐标)
+        Delay 随机(3000, 3500)
+        点击 (返回_坐标)
+        Delay 随机(3000, 3500)
+        提升舰只=True
+    Else 
+        TracePrint "没进入 主界面_多点比色值提升舰艇 "
+    End If
+    
+End Function
+
+Dim 通用返回_坐标=Array(590,1041,30,30,"通用返回_坐标")
+Dim 已特工招聘=False
+Function 特工招聘
+    已特工招聘 = True
+ 
+    Dim 谍报中心按钮_坐标=Array(482,1051,30,30,"谍报中心按钮_坐标")
+    Dim 谍报中心_多点比色值="618|30|70B2D1,607|28|70B2D1,610|132|70B2D1,545|304|8F8F8F,548|597|4D4D5B"
+    Dim 中级派遣按钮_坐标=Array(28,371,20,30,"中级派遣按钮_坐标")
+    Dim 中级派遣界面_多点比色值="495|53|FDDCB6,500|70|FDDCB6,497|145|FCDBB5,287|816|136B8D,288|922|55808F"
+    Dim 中级派遣一次按钮_坐标=Array(269,795,30,30,"中级派遣一次按钮_坐标")
+    Dim 派遣结果页_多点比色值="533|355|35497B,589|393|E9F9FF,584|554|DCF5FD,36|257|1F2746,44|279|212942"//必须包涵关闭按钮不被手指隐藏
+    Dim 继续派遣_坐标=Array(19,837,30,30,"继续派遣按钮_坐标")
+    Dim 派遣结果页继续砖石_多点比色值="47|729|A99876,49|750|6E4C2B,50|765|443323,22|751|5C4B3B,44|845|394A28"
+    Dim 派遣结果页继续砖石小_多点比色值= "42|740|A99170,43|758|624128,35|743|896847,35|752|C7A67A"
+    Dim 派遣结果关闭_坐标=Array(19,143,30,30,"派遣结果关闭_坐标")
+
+
+    If 定时循环多点比色(主界面_多点比色值,3,-1) Then 
+    	
+    	
+        点击 谍报中心按钮_坐标 
+        Delay 随机(3000, 3500)
+  
+        If 定时循环多点比色(谍报中心_多点比色值, 3, -1) Then 
+          
+            Do Until 多点比色(中级派遣界面_多点比色值)
+                点击 中级派遣按钮_坐标
+                Delay 随机(2000, 3000)
+            Loop
+            TracePrint  "进入","中级派遣界面_多点比色值"
+              
+            Do Until 多点比色(派遣结果页_多点比色值)
+                点击 中级派遣一次按钮_坐标
+                Delay 随机(2000, 3000)
+            Loop
+            TracePrint  "进入","派遣结果页_多点比色值"
+           
+            Do While 多点比色(派遣结果页_多点比色值)
+                If 多点比色(派遣结果页继续砖石_多点比色值)  or 多点比色( 派遣结果页继续砖石小_多点比色值) Then //
+                    Exit Do
+                Else 
+                    点击 继续派遣_坐标
+                    Delay 随机(2000, 3000)
+                    TracePrint  "继续","派遣结果页_多点比色值"
+                End If
+              
+            Loop
+            
+            TracePrint  "完成","抽舰"
+         
+      
+            
+            Do Until 多点比色(中级派遣界面_多点比色值)
+                点击 派遣结果关闭_坐标
+                Delay 随机(2000, 3000)
+            Loop
+            TracePrint  "返回","中级派遣界面_多点比色值"
+            
+            
+            //            Do Until 多点比色(谍报中心_多点比色值)
+            点击 通用返回_坐标
+            Delay 随机(2000, 3000)
+            //            Loop
+            TracePrint  "返回","谍报中心_多点比色值"
+      
+       
+         
+        Else 
+            TracePrint "error 谍报中心_多点比色值"
+        End If
+        点击 通用返回_坐标
+        Delay 随机(2000, 3000)
+        TracePrint "返回主界面"
+    End If
+
+End Function
+
+Function 生产新舰
+
+    Dim 基地按钮_坐标=Array(111,186,30,30,"基地按钮_坐标")
+    Dim 造船厂_坐标=Array(24,29,30,30,"造船厂_坐标")
+    Dim 战舰图纸_多点比色值="617|36|70B1D0,599|29|70B2D1,603|45|6FB0CF,556|14|54FDFD,528|33|65A7AF"
+    Dim 生产按钮_多点比色值="23|971|526E3E,55|1115|35461D,41|989|FCF1F1,38|1098|342323,48|1060|54D1A9"
+    Dim 生产按钮_坐标=Array(22,971,30,30,"生产按钮_坐标")
+    Dim 生产结果_多点比色值="606|364|8DC2E0,593|395|E6F6FD,528|759|1F4073,187|410|45BFF6,526|390|1A2F62"
+
+    If 定时循环多点比色(主界面_多点比色值, 3, -1) Then 
+        点击 基地按钮_坐标
+        Delay 随机(2000, 3000)
+    	
+        Do Until 多点比色(战舰图纸_多点比色值)
+            点击 造船厂_坐标
+            Delay 随机(2000, 3000)
+        Loop
+        TracePrint  "进入","战舰图纸_多点比色值"
+        
+        Do While 多点比色(生产按钮_多点比色值)
+            点击 生产按钮_坐标
+            Delay 随机(2000, 3000)
+            If 定时循环多点比色(生产结果_多点比色值, 3, -1) Then 
+                点击 Array(35,524,30,30,"生产结果")
+                Delay 随机(2000, 3000)
+            End If
+            TracePrint  "继续","生产按钮_多点比色值"
+        Loop
+        TracePrint  "生产完成"
+        点击 通用返回_坐标
+        Delay 随机(2000, 3000)
+        TracePrint "返回主界面"
+    End If
+	  
+End Function
+
+
+Dim 改造中心按钮_坐标=Array(224,1043,30,30,"改造中心按钮_坐标")  
+Dim 改造中心_多点比色值="617|63|70B2D1,597|62|70B2D1,601|160|70B2D1,599|123|70B2D1,606|966|100B0B,39|1048|415128"
+Function 更换两艘垃圾
+	
+    Dim 爱丁堡号_多点找色值=Array("07AB78","6|-54|909081,29|28|98B6B8,-11|70|07AA77,2|-76|41511C")
+    Dim 兰利号_多点找色值=Array("453729","-5|72|BB901E,-2|94|BC901E,1|124|BA8F1D,24|168|1E1408")
+    Dim 更换按钮_多点找色值=Array("4C6533","0|43|4AC128,19|100|374827,11|32|64EFA9,15|53|64EFA9")
+ 
+    If 定时循环多点比色(主界面_多点比色值, 3, -1) Then 
+       
+    	
+        Do Until 多点比色(改造中心_多点比色值)
+            点击 改造中心按钮_坐标
+            Delay 随机(2000, 3000)
+        Loop
+        TracePrint  "进入","改造中心_多点比色值"
+        
+        //        滑动 Array(32,84,30,30),Array(30,665,30,30)
+        //        Delay 随机(2000, 3000)
+        点击 Array(9, 539, 20, 30, "点击第三艘船")
+        Delay 随机(2000, 3000)
+            
+        Dim   point = 多点找色(0,0,0,0, 爱丁堡号_多点找色值, 0)
+        If point(0) > -1 And point(1) > -1 Then 
+            点击 (Array(point(0), point(1), 30,30, "爱丁堡号_多点找色值"))
+            Delay 随机(2000, 3000)
+            point = 多点找色(0,0,0,0, 更换按钮_多点找色值, 0)
+            If point(0) > -1 And point(1) > -1 Then 
+                点击 (Array(point(0), point(1), 10, 10, "更换按钮_多点找色值"))
+                Delay 随机(2000, 3000)
+                点击 上阵船只_坐标
+                Delay 随机(2000, 3000)
+            Else 
+                循环错误输出 "没找到 更换按钮_多点找色值"
+            End If
+            
+        Else 
+            循环错误输出 "没找到 爱丁堡号_多点找色值"
+        End If
+        
+        point = 多点找色(0,0,0,0, 兰利号_多点找色值, 0)
+        If point(0) > -1 And point(1) > -1 Then 
+            点击 (Array(point(0), point(1), 30, 30, "兰利号_多点找色值"))
+            Delay 随机(2000, 3000)
+            point = 多点找色(0,0,0,0, 更换按钮_多点找色值, 0)
+            If point(0) > -1 And point(1) > -1 Then 
+                点击 (Array(point(0), point(1), 10, 10, "更换按钮_多点找色值"))
+                Delay 随机(2000, 3000)
+                点击 上阵船只_坐标
+                Delay 随机(2000, 3000)
+            Else 
+                循环错误输出 "没找到 更换按钮_多点找色值"
+            End If
+        Else 
+            循环错误输出 "没找到 兰利号_多点找色值"
+        End If
+        
+        点击 (返回_坐标)
+        Delay 随机(3000, 3500)
+    
+        TracePrint  "更换两艘垃圾完成"
+    End If
+	
+End Function
+
+Function 领取成就奖励()
+
+    Dim 任务按钮_坐标=Array(389,1057,30,30,"任务按钮_坐标")  
+    Dim 日常任务界面_多点比色值="539|561|60A4CF,517|572|60A4CF,536|599|60A4CF,517|645|60A4CF,511|628|84C8D9"
+    Dim 领取奖励按钮_多点比色值="320|807|3B5322,349|948|374827,342|841|54D0A8,334|871|54D1A9,337|915|52CBA3"
+    Dim 领取奖励按钮_坐标=Array(319,819,30,30,"领取奖励按钮_坐标") 
+    Dim 点击任意位置关闭_坐标=Array(96,447,30,30,"点击任意位置关闭_坐标") 
+    Dim 成就选项卡_坐标=Array(369,191,30,30,"点击任意位置关闭_坐标") 
+    Dim 成就关闭_坐标=Array(505,940,30,30,"成就关闭_坐标") 
+    
+    If 定时循环多点比色(主界面_多点比色值, 3, -1) Then 
+      
+        点击 任务按钮_坐标
+        Delay 随机(2000, 3000)
+        
+        If 定时循环多点比色(日常任务界面_多点比色值, 3, -1) Then 
+       
+            Do While 多点比色(领取奖励按钮_多点比色值)
+                点击 领取奖励按钮_坐标
+                Delay 随机(2000, 3000)
+                点击 点击任意位置关闭_坐标
+                Delay 随机(2000, 3000)
+            Loop
+            
+            点击 成就选项卡_坐标
+            Delay 随机(2000, 3000)
+            
+            
+            
+            Do While 多点比色(领取奖励按钮_多点比色值)
+                点击 领取奖励按钮_坐标
+                Delay 随机(2000, 3000)
+                点击 点击任意位置关闭_坐标
+                Delay 随机(2000, 3000)
+            Loop
+        Else 
+            TracePrint "没进入 日常任务界面"
+        End If
+        点击 (成就关闭_坐标)
+        Delay 随机(3000, 3500)
+        TracePrint  "领取成就奖励领取完成"
+    End If
+End Function
+
+
+
+//___________________________流程的函数_______________________________________
+
+	
+Function 练级()
+	
+    If 多点比色(升级完成_多点比色值)  Then 	 
+        ShowMessage("等级已经可以喊话，跳过练级阶段")
+        Delay 随机(1000, 2000)
+
+    Else 
+        创建角色()
+        开始练级()
+    End If
+
+End Function
+Dim 创建角色界面_多点比色值="580|306|2B3C75,489|342|5B749E,60|244|314C5D,64|777|212D6A,301|901|332BBF"
+Function 创建角色
+   
+    //    Dim 角色名_坐标=Array( 21,527,30,60,"角色名_坐标")
+    Dim 创建角色_坐标=Array(51,770,30,60,"创建角色_坐标")
+    Dim 骰子_坐标=Array(297,893,30,30,"骰子_坐标")
+    
+    Rem  reroll
+    If 多点比色(创建角色界面_多点比色值) Then 
+        点击 (骰子_坐标)
+        Delay 随机(1500, 2500)
+        点击 (创建角色_坐标)
+        Delay 随机(1500, 2500)
+        Goto reroll
+    Else 
+        TracePrint("不在创建角色界面")
+    End If
+End Function
+
+
+Dim 比较位置1色值 
+Dim 比较位置2色值
+Dim 比较位置3色值
+Dim 不动次数
+Function 开始练级()
+
+    Dim 等级提升_多点比色值="496|383|335475,509|417|5FD4FF,510|467|2FAAE2,510|496|528BFA,510|555|279EDF"
+    Dim 等级提升_坐标=Array(89,495,30,30,"等级提升_坐标")
+    
+
+    Dim 新舰_多点比色值="582|403|DCF5FD,557|401|445C8E,545|361|668ABD,461|415|031A3E,46|150|2C3455,48|512|58402F"
+    Dim 新舰关闭_坐标=Array(19,144,30,30,"新舰关闭_坐标")
+    Dim 新舰2_多点比色值= "590|401|DCF5FD,591|388|E0FDFF,620|341|6D9BBC,510|423|6C9FC1,37|713|3F572E"
+    Dim 新舰2关闭_坐标=Array(23,666,30,30,"新舰关闭_坐标")
+ 
+    Dim 登陆送好礼_多点比色值="502|224|AF653B,512|302|1A6DB7,518|451|2165A7,512|707|1A6DB7,513|798|1A6DB3"
+    Dim 登陆送好礼关闭_坐标=Array(583,1082,30,30,"登陆送好礼关闭")
+    
+    Dim 十级_多点比色值="623|145|3BC5E8,618|145|3CB8D7,621|152|3BBFE0,615|156|3CB6D5,621|158|3DB0CE,502|1048|6979AB"
+    Dim 已经十级=False
+
+    Dim 作战计划按钮_多点找色值=Array("71CBFA","36|8|929229,36|21|0223FF,49|56|4B7CCF,65|41|99BBEE")
+    Dim 作战计划领取_坐标=Array(53,547,30,30,"作战计划领取_坐标")
+    Dim 作战计划关闭_坐标=Array(584,1081,15,15,"作战计划关闭_坐标")
+    Dim 作战计划_多点比色值="616|443|B5F4FC,616|481|AAE9F8,612|562|96E9F9,617|699|A3EDF5,597|759|8E4C86,596|806|2DD7E8"
+
+    Dim 最新副本_多点找色值=Array("6B8599","-1|268|44628F,-7|34|375093,-9|214|3B5A80,-14|115|CCFFFF")
+    If system_ios = True Then //没醒星地图  战斗按钮
+        最新副本_多点找色值=Array("2F487B","6|88|38568D,4|255|334A9A,346|51|2C2125,346|131|292020")  
+    Else 
+        最新副本_多点找色值=Array("6B8599","-1|268|44628F,-7|34|375093,-9|214|3B5A80,-14|115|CCFFFF") 
+    End If
+    
+    Dim 关卡选择_多点比色值="591|5|242457,590|2|35358A,631|173|22225F,5|948|8E6429,31|1014|FFC820,602|1047|463A2D"
+ 
+    
+    Dim 奖励横幅_多点比色值="441|397|2FA3D4,443|334|325476,428|325|204153,179|579|8CC4E1,438|755|228BC9"
+    Dim 奖励横幅_坐标=Array(173,483,30,30,"奖励横幅_坐标")
+    
+    Dim 技能升级_多点比色值="528|418|DEDECD,528|449|584837,528|716|D7D6C5,529|735|584837,111|507|664A2D,127|632|F5F4F3"
+    Dim 技能升级确定_坐标=Array(108,504,30,30,"技能升级确定_坐标")
+    
+    Dim 科技_多点比色值="589|28|1A1A44,621|43|3D617E,616|51|67A4C5,602|49|70B2D1,601|89|70B2D1,621|77|70B2D1"
+
+    
+    //    Dim 北海最后一关完成_多点比色值="109|540|1C3573,114|855|1C3D90,212|862|2F7161,207|701|39637B,149|1080|375077"
+    //    Dim 北海V扫荡_坐标=Array(168,680,30,30,"北海V扫荡_坐标")
+    
+    Dim 扫荡弹窗_多点比色值="522|305|C0B8B0,502|532|CCB691,482|552|CCB691,483|601|CCB691,166|346|47572E,171|789|54361D"
+    Dim 扫荡弹窗五次_坐标=Array(138,341,30,30,"扫荡弹窗五次_坐标")
+    Dim 扫荡弹窗确定_坐标=Array(138,644,30,30,"扫荡弹窗确定_坐标")
+    
+   
+    
+    Dim 购买体力弹窗_多点比色值="466|513|CCB691,445|521|C7B18D,446|619|CCB691,238|760|9C7259,244|709|3A511B"
+    Dim 购买体力弹窗购买_坐标=Array( 215,705,30,30,"购买体力弹窗")
+    Dim 购买体力弹窗使用_坐标=Array(347,706,30,30,"购买体力弹窗使用_坐标")
+    Dim 购买体力弹窗关闭_坐标=Array(439,835,30,30,"购买体力弹窗关闭_坐标")
+    
+   
+    Dim 签到界面_多点比色值="628|72|98DCFE,616|310|99E5F5,626|450|ABEDF5,620|653|9EE9F1,622|1084|3D5FA3"
+    Dim 签到奖励选项卡_坐标=Array(65,22,30,30,"签到奖励选项卡_坐标")
+    Dim 签到界面关闭_坐标=Array(583,1080,30,30,"签到界面关闭_坐标")
+    Dim 签到领取_坐标=Array(390,859,30,30,"签到领取_坐标")
+   
+    
+    Dim 布阵_多点比色值="608|545|AFE5EB,592|545|AFE5EB,588|554|A9DCE2,593|691|1A122A,64|1055|938372,612|694|1D151B"
+    
+    Dim 成长计划_多点比色值="615|503|96E5F5,597|476|032844,590|456|CD8E81,615|620|96E5F5,604|801|734474,591|656|69CCDC"
+    Dim 成长计划关闭_坐标=Array(580,1079,15,15,"成长计划关闭_坐标")
+    
+    Dim 副本章节选择船金_多点找色值=Array("AB926A","-61|-21|1F4466,-48|4|86DAE4,-72|18|183950,-54|29|2D4053")//
+    Dim 副本章节选择船银_多点找色值=Array("A99068","-31|-49|8A8A8A,-60|-25|493028,-73|11|352525,-54|23|312020")//
+    Dim 副本章节选择船铜_多点找色值=Array("A38B62","-58|-28|344D6E,-48|-4|ACD5E6,-60|20|2A4B75,-47|10|7A8CA7")//
+    Dim 副本章节选择船身_多点找色值=Array("9F8663","-8|32|3F2E1F,25|76|3C362C,24|23|75645C,-28|-41|959595")
+
+    Dim 副本章节选择船2_多点找色值=Array("A78E66","22|9|5D6676,1|51|4C4433,45|77|574E3E,-8|61|4FDBFF")
+    Dim 副本章节选择船_多点找色值=Array("C1BAA4","8|65|3E3E2D,-29|-42|969696,-30|121|757575,70|39|62DDDE")
+    Dim 章节奖励可领取_多点找色值=Array("4BA795","-6|1|64DBC0,-7|10|60D2B8,-12|24|5AC6AD,-5|48|6BEBCE,0|56|5CCCB3")
+    Dim 章节完成_多点比色值="521|855|833898,527|1108|8B31A4,110|1111|1C3872,109|849|14357D,112|972|1C4799"
+    
+    
+    Dim 通关奖励1已领取_多点比色值="43|241|243455,64|279|1D354E,45|347|E9ECFC,37|381|375374,51|321|8FA4C5"
+    Dim 通关奖励2已领取_多点比色值="39|501|57473F,35|537|524239,43|605|F4F4D7,33|627|92817A,62|583|948474"
+    Dim 通关奖励3已领取_多点比色值="45|740|225E7C,38|774|26566F,45|842|E9FFFF,45|858|58AAC3,61|777|153D56"
+    Dim 通关奖励1未达到_多点比色值="40|245|2D4462,41|252|2E4769,63|287|AAEDFA,64|302|8898A9,46|328|2E3F57"
+    Dim 通关奖励2未达到_多点比色值="42|501|5F473E,57|534|A58F7F,60|546|FDFDFC,51|573|543931,34|576|3D2626"
+    Dim 通关奖励3未达到_多点比色值="40|738|2F5871,57|766|76DDEF,62|786|A4F9FE,63|809|67C0D8,39|822|19364E"
+    
+    Dim 通关奖励1_坐标=Array(30,268,5,5,"通关奖励1_坐标")
+    Dim 通关奖励2_坐标=Array(39,546,0,0,"通关奖励2_坐标")
+    Dim 通关奖励3_坐标=Array(30,764,5,5,"通关奖励3_坐标")
+    Dim 通关奖励弹窗关闭_坐标=Array(181,531,30,30,"通关奖励弹窗关闭_坐标")
+        
+           
+    dim 战斗失败确定_坐标=Array(101,910,30,30,"战斗失败确定_坐标")
+      
+    dim 可扫荡_多点找色值
+    If system_ios = True Then //三星地图 99次数 战斗按钮
+        可扫荡_多点找色值=Array("1C4A9A","67|-118|19594E,89|-62|64EFA9,98|1|2C766E,142|132|ACACAA,382|90|FAEFBF")  
+    Else 
+        可扫荡_多点找色值=Array("237463","31|46|64EFA9,-57|123|1D4799,324|211|EAEAB7,84|255|C4C4C3,75|258|BEBEBC")  
+    End If
+      
+      
+    Dim 阵型_多点比色值="614|72|70B2D1,598|69|70B2D1,598|84|70B2D1,596|99|70B2D1,612|120|70B2D1"
+    
+    Dim 改造中心配件_多点比色值="616|61|70B2D1,598|57|70B2D1,597|98|70B2D1,425|46|5599C5,451|68|50D8F8"
+    Dim 改造中心升级_坐标=Array(28,767,30,30,"改造中心升级_坐标")  
+      
+    Dim 升级送好礼_多点比色值="499|398|1368AC,479|390|FBEDED,499|512|196EC3,491|826|1669B2,477|883|67DAFE,472|892|76376A"
+    Dim 升级送好礼关闭_坐标=Array(582,1080,15,15,"升级送好礼关闭_坐标")  
+                
+    Dim 精英战役界面_多点比色值="617|33|6AA9C8,599|29|6DADCD,598|75|70B2D1,612|85|173AA5,590|1012|030306,598|135|70B2D1"
+    Dim 精英副本引1_坐标=Array(435,860,15,15,"精英副本引1_坐标")  
+    Dim 十五级已提升=False
+    Dim 十五级_多点比色值="623|145|3BC5E8,624|157|3EA6C1,621|153|3CB3D2,618|157|3CB6D5,614|153|3DABC7,165|1029|9E8D82"//包含争霸引导手指遮挡
+        
+    Dim 科罗拉多号_多点比色值=   "603|18|70B2D1,602|146|70B2D1,324|845|FF8AF0,292|922|245268,439|875|44AFD0"
+    Dim 科罗拉多号战斗_坐标=Array(  50,805,30,30,"科罗拉多号战斗_坐标")  
+   
+    Dim 怒海争锋_多点比色值="614|44|70B1D0,596|51|6EAFCE,595|69|70B2D1,604|88|70B2D1,37|30|867565"
+           
+           
+    Dim 十七级已提升=False
+    Dim 十七级_多点比色值="622|146|3BBFE1,616|145|3EA8C4,614|153|4091A6,618|155|3CBADB,624|155|3EA6C1,624|159|3BC3E5,623|153|484040"
+          
+    Dim 限时特惠_多点比色值="519|410|85DAED,532|453|A3EDF5,525|551|87E2F2,519|688|74DAF5,123|698|054FAA" 
+    Dim 限时特惠_坐标=Array( 581,1075,30,30,"限时特惠_坐标")    
+          
+    Dim 原油全用完弹窗_多点比色值="351|332|80D5D5,233|322|65999B,252|639|83E0E1,250|646|83DFE0,353|388|CCB691,350|395|CCB691"
+          
+          
+    /*
+    If 多点比色(原油全用完弹窗_多点比色值) Then 
+        点击 (限时特惠_坐标)
+        Delay 随机(1500, 2000)
+        Goto restart
+    End If
+        
+    point = 多点找色(0,0,0,0, 可扫荡_多点找色值, 0)
+    If point(0) > -1 And point(1) > -1 Then 
+        点击 (Array(point(0)+20, point(1)+20, 0, 0, "可扫荡_多点找色值"))
+        Delay 随机(2000, 3000)
+        Goto restart
+    End If
+    */
+    Dim idleLoop=0
+    Dim idleDely=1000
+    
+    Dim 不到20级=True
+    Rem restart
+    比较位置1色值 = GetPixelColor(12,5)
+    比较位置2色值 = GetPixelColor(631,736)
+    比较位置3色值 = GetPixelColor(277,1126)
+    idleLoop=0
+    While 不到20级
+        Dim point
+	
+        If 多点比色(升级完成_多点比色值) Then 
+        	
+            领取宝石() 
+            不到20级 = False
+            ShowMessage("练级完成，开始喊话！")
+            Delay 随机(1000, 2000)
+            Goto restart
+        End If
+		
+
+		
+        点击对话框 
+        
+        点击引导妹子对话框 
+        
+        If 点击跳过剧情() Then 
+            Goto restart
+        End If
+		
+        If (全图找手指()) Then 
+            Goto restart	
+        End If
+		
+        If 多点比色(十级_多点比色值) Then 
+            //            可开始扫荡 = True
+            //            领取宝石() 
+            已经十级 = True
+         
+        End If
+        
+        If 多点比色(十五级_多点比色值) and 十五级已提升=False Then  
+            特工招聘()
+            生产新舰 
+            //            更换两艘垃圾()
+            添加船只 ()
+            If 提升舰只() = True Then 
+                十五级已提升=True
+            End If
+        End If
+               
+		
+        If 多点比色(十七级_多点比色值) and 十七级已提升=False Then  
+            If 提升舰只() = True Then 
+                十七级已提升=True
+            End If
+        End If
+		
+        If 战斗界面中() Then 
+            Goto restart
+        End If
+
+        If 多点比色(签到界面_多点比色值) Then 
+            点击 签到奖励选项卡_坐标
+            Delay 随机(3000, 3500)
+            点击 签到领取_坐标 
+            Delay 随机(3000, 3500)
+            点击 (签到界面关闭_坐标)
+            Delay 随机(3500, 4000)
+            Goto restart
+        End If
+
+      
+        If 多点比色(聊天界面_多点比色值) Then   
+            点击 退出聊天界面_坐标
+            Delay 2000
+            Goto restart
+        End If
+        
+        If 多点比色(战斗胜利_多点比色值) Then 
+            点击 (战斗胜利_坐标)
+            Delay 随机(1500, 2000)
+            Goto restart
+        End If
+        
+        
+        If 多点比色(等级提升_多点比色值) Then 
+            点击 (等级提升_坐标)
+            Delay 随机(1500, 2000)
+            Goto restart
+        End If
+    
+    
+        If 多点比色(新舰_多点比色值) Then 
+            点击 (新舰关闭_坐标)
+            Delay 随机(1500, 2000)
+            Goto restart
+        End If
+        If 多点比色(新舰2_多点比色值) Then 
+            点击 (新舰2关闭_坐标)
+            Delay 随机(1500, 2000)
+            Goto restart
+        End If
+        
+        
+        If 多点比色(科罗拉多号_多点比色值) Then 
+            点击 (科罗拉多号战斗_坐标)
+            Delay 随机(1500, 2000)
+            Goto restart
+        End If
+    
+        If 多点比色(精英战役界面_多点比色值) Then 
+            点击 (精英副本引1_坐标)
+            Delay 随机(3500, 4500)
+            点击 (返回_坐标)
+            Delay 随机(3500, 4500)
+            点击 (返回_坐标)
+            Delay 随机(3500, 4500)
+            Goto restart
+        End If
+        
+        If 多点比色(章节选择界面_多点比色值) Then 
+            //            点击 (北海副本_坐标)
+            //            Delay 随机(3000, 4000)
+            
+            If 多点比色(已经十级) and 已特工招聘 = False Then 
+                点击 返回_坐标                 
+                Delay 2500
+                特工招聘()
+                生产新舰 
+                更换两艘垃圾()
+                添加船只 
+                Goto restart
+            End If
+              
+            Dim 找船方向=0
+            Dim 第一章副本选择_多点比色值="545|509|76A7B7,541|531|76A7B7,539|567|6D9AA9,540|603|76A7B7,544|655|72A2B1"
+            Dim 第二章副本选择_多点比色值="538|516|72A0B0,536|519|628A96,539|573|76A7B7,538|570|53727C,536|618|72A1B1,537|655|75A6B6"
+            
+            If 多点比色(第一章副本选择_多点比色值) Then 
+                找船方向=0
+            ElseIf 多点比色(第二章副本选择_多点比色值) Then
+                找船方向=6
+            End If
+            
+            //            FindMultiColor
+            Delay 4500
+            point = 多点找色(0,0,0,0, 副本章节选择船身_多点找色值, 找船方向)
+            If point(0) > -1 And point(1) > -1 Then 
+                点击 (Array(point(0)+20, point(1)+20, 0, 0, "副本章节选择船身_多点找色值"))
+                Delay 随机(3000, 4000)
+                Goto restart
+            Else 
+              
+                //                point = 多点找色(0,0,0,0, 副本章节选择船2_多点找色值, 2)
+                //                If point(0) > -1 And point(1) > -1 Then 
+                //                    点击 (Array(point(0)+20, point(1)+20, 0, 0, "副本章节选择船2_多点找色值"))
+                //                    Delay 随机(3000, 4000)
+                //                    Goto restart
+                //                Else
+                //                    TracePrint "没有可选择副本章节选择船2_多点找色值"
+                //                End If
+                //                
+                //                point = 多点找色(0,0,0,0, 副本章节选择船3_多点找色值, 2)
+                //                If point(0) > -1 And point(1) > -1 Then 
+                //                    点击 (Array(point(0)+20, point(1)+20, 0, 0, "副本章节选择船3_多点找色值"))
+                //                    Delay 随机(3000, 4000)
+                //                    Goto restart
+                //                Else
+                //                    TracePrint "没有可选择章3"
+                //                End If
+                
+                //                point = 多点找色(0,0,0,0, 副本章节选择船金_多点找色值, 2)
+                //                If point(0) > -1 And point(1) > -1 Then 
+                //                    点击 (Array(point(0)+20, point(1)+20, 0, 0, "副本章节选择船金_多点找色值"))
+                //                    Delay 随机(3000, 4000)
+                //                    Goto restart
+                //                Else
+                //                    TracePrint "没有可选择章节金"
+                //                End If
+                //                                
+                //                point = 多点找色(0,0,0,0, 副本章节选择船银_多点找色值, 2)
+                //                If point(0) > -1 And point(1) > -1 Then 
+                //                    点击 (Array(point(0)+20, point(1)+20, 0, 0, "副本章节选择船银_多点找色值"))
+                //                    Delay 随机(3000, 4000)
+                //                    Goto restart
+                //                Else
+                //                    TracePrint "没有可选择章节银"
+                //                End If
+                //                                
+                //                point = 多点找色(0,0,0,0, 副本章节选择船铜_多点找色值, 2)
+                //                If point(0) > -1 And point(1) > -1 Then 
+                //                    点击 (Array(point(0)+20, point(1)+20, 0, 0, "副本章节选择船铜_多点找色值"))
+                //                    Delay 随机(3000, 4000)
+                //                    Goto restart
+                //                Else 
+                //                    TracePrint "没有可选择章节铜"
+                //                End If
+                //                
+                //                point = 多点找色(0,0,0,0, 副本章节选择船身_多点找色值, 2)
+                //                If point(0) > -1 And point(1) > -1 Then 
+                //                    点击 (Array(point(0)+20, point(1)+20, 0, 0, "副本章节选择船身_多点找色值"))
+                //                    Delay 随机(3000, 4000)
+                //                    
+                //                    点击  通关奖励1_坐标
+                //                    Delay 随机(3000, 3500)
+                //                    点击 通关奖励弹窗关闭_坐标 
+                //                    Delay 随机(3000, 3500)
+                //                
+                //                    点击  通关奖励2_坐标
+                //                    Delay 随机(3000, 3500)
+                //                    点击 通关奖励弹窗关闭_坐标 
+                //                    Delay 随机(3000, 3500)
+                //                
+                //                    点击  通关奖励3_坐标
+                //                    Delay 随机(3000, 3500)
+                //                    点击 通关奖励弹窗关闭_坐标 
+                //                    Delay 随机(3000, 3500)
+                //                   
+                //                    点击 返回_坐标                 
+                //                    Delay 2500
+                //                
+                //                    Goto restart
+                //                Else 
+                //                    TracePrint "没有可选择章副本章节选择船身_多点找色值"
+                //                End If
+                
+                TracePrint "没有可选择章节"
+            End If
+            Goto restart
+        End If
+        If 多点比色(关卡选择_多点比色值) Then 
+        	
+            If  多点比色(通关奖励1已领取_多点比色值)=False and 多点比色(通关奖励1未达到_多点比色值)=False Then 
+                点击  通关奖励1_坐标
+                Delay 随机(3000, 3500)
+                点击 通关奖励弹窗关闭_坐标 
+                Delay 随机(3000, 3500)
+            End If
+            
+            If  多点比色(通关奖励2已领取_多点比色值 )=False  and 多点比色(通关奖励2未达到_多点比色值)=False Then 
+                点击  通关奖励2_坐标
+                Delay 随机(3000, 3500)
+                点击 通关奖励弹窗关闭_坐标 
+                Delay 随机(3000, 3500)
+            End If
+            
+            If  多点比色(通关奖励3已领取_多点比色值)=False  and 多点比色(通关奖励3未达到_多点比色值)=False Then 
+                点击  通关奖励3_坐标
+                Delay 随机(3000, 3500)
+                点击 通关奖励弹窗关闭_坐标 
+                Delay 随机(3000, 3500)
+            End If
+            
+            Delay 随机(2000, 3000)
+            If 可开始扫荡=True Then 
+                point = 多点找色(0,0,0,0, 可扫荡_多点找色值, 3)
+                If point(0) > -1 And point(1) > -1 Then 
+                    点击 (Array(point(0), point(1), 0, 0, "可扫荡_多点找色值"))
+                    Delay 随机(2000, 3000)
+                    Goto restart
+                Else 
+                    滑动 Array(338,405,1,1),Array(255,706,1,1)
+                    Delay 随机(3000, 3500)
+                    point = 多点找色(0,0,0,0, 可扫荡_多点找色值, 3)
+                    If point(0) > -1 And point(1) > -1 Then 
+                        点击 (Array(point(0), point(1), 0, 0, "可扫荡_多点找色值"))
+                        Delay 随机(2000, 3000)
+                        Goto restart
+                    End If
+                End If 
+            End If
+            
+            If 多点比色(章节完成_多点比色值) Then 
+                点击 (返回_坐标)
+                Delay 随机(3000, 3500)
+                点击 (返回_坐标)
+                Delay 随机(3000, 3500)
+                Goto restart
+            End If
+            
+            point = 多点找色(0,0,0,0, 最新副本_多点找色值,2)
+            If point(0) > -1 And point(1) > -1 Then 
+                点击 (Array(point(0)-30, point(1), 10, 40, "最新副本_多点找色值"))
+                Delay 随机(2000, 3000)
+                Goto restart
+            Else 
+                TracePrint "没找到最新副本"
+            End If
+            Goto restart
+        End If
+    
+        If 多点比色(奖励横幅_多点比色值) Then 
+            点击 (奖励横幅_坐标)
+            Delay 随机(1500, 2000)
+            Goto restart
+        End If
+    
+        If 多点比色(技能升级_多点比色值) Then 
+            点击 (技能升级确定_坐标)
+            Delay 随机(1500, 2000)
+            Goto restart
+        End If
+        
+        If 多点比色(科技_多点比色值) Then 
+            点击 (返回_坐标)
+            Delay 随机(1500, 2000)
+            Goto restart
+        End If
+        
+        If 多点比色(改造中心_多点比色值) Then 
+
+           
+            点击 (返回_坐标)
+            Delay 随机(1500, 2000)
+            Goto restart
+        End If
+        
+        If 多点比色(布阵_多点比色值) Then 
+            点击 (返回_坐标)
+            Delay 随机(1500, 2000)
+            Goto restart
+        End If
+    
+    
+        If 多点比色(战斗失败_多点比色值) Then 
+        	
+            If (全图找手指()) Then 
+                Goto restart
+            Else 
+                点击 (战斗失败确定_坐标)
+                Delay 随机(3000, 3500)
+                点击 (返回_坐标)
+                Delay 随机(3000, 3500)
+                点击 (返回_坐标)
+                Delay 随机(4000, 4500)
+                领取宝石 
+                添加船只 
+                提升舰只 
+        
+                Goto restart
+            End If
+          
+        End If
+        
+        
+        //        If 多点比色(可添加新舰_多点比色值) Then 
+        //            点击 添加船只_坐标
+        //            Delay 随机(4000, 4500)
+        //            点击 上阵船只_坐标
+        //            Delay 随机(4000, 4500)
+        //   
+        //        End If
+    
+        
+        //_______分割线 ___
+        
+        If 多点比色(扫荡弹窗_多点比色值) Then 
+            点击 (扫荡弹窗五次_坐标)
+            Delay 随机(4000, 4500)
+            Goto restart
+        End If
+        
+        If 多点比色(购买体力弹窗_多点比色值) Then 
+        	
+         
+            
+            
+            连续点击 (购买体力弹窗购买_坐标,2,2000)
+            Delay 随机(2500, 3000)
+            
+            连续点击 购买体力弹窗使用_坐标, 5, 2000
+            Delay 随机(2500, 3000)
+            点击 购买体力弹窗关闭_坐标
+            Delay 随机(2500, 3000)
+            
+            If 多点比色(原油全用完弹窗_多点比色值) Then 
+                //                点击 购买体力弹窗关闭_坐标
+                //                Delay 随机(2500, 3000)
+                点击 (返回_坐标)
+                Delay 随机(2500, 3000)
+                点击 (返回_坐标)
+                Delay 随机(2500, 3000)
+                领取成就奖励()
+                Goto restart
+            End If
+            Goto restart
+        End If
+        
+        If 多点比色(创建角色界面_多点比色值) Then 
+            创建角色()
+            Goto  restart
+        End If
+        
+        If 多点比色(登陆送好礼_多点比色值) Then 
+            点击 (登陆送好礼关闭_坐标)
+            Delay 随机(1500, 2000)
+            
+            Delay 5000
+            //            领取新手登陆奖励
+            point = 多点找色(0,0,0,0, 作战计划按钮_多点找色值, 2)
+            If point(0) > -1 And point(1) > -1 Then 
+                点击 (Array(point(0), point(1), 0, 0, "作战计划按钮_多点找色值"))
+                Delay 随机(4000, 5000)
+                点击 作战计划领取_坐标
+                Delay 随机(4000, 5000)
+                点击 作战计划领取_坐标
+                Delay 随机(4000, 5000)
+                点击 作战计划关闭_坐标
+                Delay 随机(4000, 5000)
+                Goto restart
+            End If
+            Goto restart
+        End If
+        
+
+        
+        If 多点比色(作战计划_多点比色值) Then 
+            点击 (作战计划关闭_坐标)
+            Delay 随机(1500, 2000)
+            Goto restart
+        End If
+        
+        If 多点比色(成长计划_多点比色值) Then 
+            点击 (成长计划关闭_坐标)
+            Delay 随机(1500, 2000)
+            Goto restart
+        End If
+        
+        If 多点比色(阵型_多点比色值) Then 
+            点击 (返回_坐标)
+            Delay 随机(1500, 2000)
+            Goto restart
+        End If
+        
+        If 多点比色(改造中心配件_多点比色值) Then 
+            点击 (改造中心升级_坐标)
+            Delay 随机(1500, 2000)
+            点击 (返回_坐标)
+            Delay 随机(1500, 2000)
+            Goto restart
+        End If
+        If 多点比色(升级送好礼_多点比色值) Then 
+            点击 (升级送好礼关闭_坐标)
+            Delay 随机(1500, 2000)
+            Goto restart
+        End If
+        
+        If 多点比色(怒海争锋_多点比色值) Then 
+            点击 (返回_坐标)
+            Delay 随机(2500, 3000)
+            点击 (返回_坐标)
+            Delay 随机(2500, 3000)
+            Goto restart
+        End If
+    
+        If 多点比色(限时特惠_多点比色值) Then 
+            点击 (限时特惠_坐标)
+            Delay 随机(1500, 2000)
+            Goto restart
+        End If
+    
+        //====================通用按钮===========================================
+        If 点击通用确定按钮() Then 
+            Goto restart
+        End If
+        If 点击全局关闭按钮() Then 
+            Goto restart
+        End If
+        If 点击通用返回按钮() Then 
+            Goto restart
+        End If
+ 
+
+        //=================判断界面是否不动======================================
+   
+        If 比较位置1色值 = GetPixelColor(12,5) And 比较位置2色值 = GetPixelColor(631,736) And 比较位置3色值 = GetPixelColor(277,1126) Then 	
+            不动次数 = 不动次数 + 1
+            TracePrint "不动次数",不动次数
+        Else 
+            不动次数 = 0
+            idleLoop =0
+        End If
+        //        If 不动次数 > 3 Then //界面不动的，才要去点点，界面还在动的，可能是过场动画
+        //==================空循环特殊处理=====================================   
+        TracePrint "界面不动特别点击"
+        If idleLoop > 10 Then 
+            随便点点 
+            点击主线任务栏 	
+            ShowMessage ("脚本异常")
+            idleDely=5000
+        ElseIf (idleLoop > 5) Then //如果空循环次数太多
+            随便点点 
+            点击主线任务栏 
+            idleDely=3000
+        ElseIf (idleLoop > 3) Then
+            点击主线任务栏 
+            点击全局关闭按钮 
+            idleDely=2200
+        ElseIf (idleLoop > 2) Then
+            点击主线任务栏
+            点击通用返回按钮 
+            idleDely=1500
+        Else 
+            点击主线任务栏 
+            idleDely=1000
+        End If
+        //        Else//界面还动的增加延迟时间 
+        //            TracePrint "界面还在动"
+        //            If idleLoop > 6 Then 
+        //                idleDely=idleDely+1000
+        //            ElseIf (idleLoop > 3) Then
+        //                idleDely=5000
+        //            Else 
+        //                idleDely=3000
+        //            End If
+        //        End If
+        idleLoop = idleLoop + 1
+        TracePrint "单全循环完成"
+        Delay idleDely
+    Wend
+    
+    点击全局关闭按钮()
+    点击通用返回按钮()
+    Delay 随机(1000,2000)
+End Function
+
+Function 喊话()
+    If 多点比色(升级完成_多点比色值) Then 
+        开始喊话()
+        Delay 随机(1000, 2000)
+    Else 
+        If 一键升级 Then
+            ShowMessage "启动一键升级"
+            Delay 1000
+            练级() 	
+            ShowMessage "当前等级已经可以喊话了.."
+            Delay 1000
+            开始喊话()
+        Else 
+            While True
+                ShowMessage "当前等级无法喊话，请升级"
+            Wend
+        End If
+    End if
+End Function
+
+Function 开始喊话()
+	
+ 
+    Delay 1500
+    If 延时 = null or 延时 = "" or 延时 = 0  Then 
+        延时 = 15000
+    End If
+    //进入主界面
+    Dim 未进入主界面=True
+    While 未进入主界面
+        If 多点比色(主界面_多点比色值) Then 
+            未进入主界面 = False
+        Else 
+            If 多点比色(聊天界面_多点比色值) Then 
+                点击 退出聊天界面_坐标
+                Delay 2000
+            End If
+            If 点击全局关闭按钮()=False Then  
+                TracePrint("未能发现关闭按钮")
+                ShowMessage "请确保在主界面..."
+            End If
+            If 点击通用返回按钮()=False Then  
+                TracePrint("未能发现通用返回按钮")
+                ShowMessage "请确保在主界面..."
+            End If
+            If (全图找手指()) Then 
+                TracePrint("还有未完成的引导")
+                ShowMessage "还有未完成的引导"
+                开始练级 ()
+            End If
+            Delay 1500
+        End If
+    Wend
+
+    //进入聊天界面
+    Dim 未进入聊天界面=True
+    While 未进入聊天界面
+        If 多点比色(聊天界面_多点比色值) Then 
+            未进入聊天界面 = False
+        Else 
+            If 点击全局关闭按钮()=False Then  
+                TracePrint("未能发现关闭按钮")
+                ShowMessage "请确保在主界面..."
+            End If
+            If 点击通用返回按钮()=False Then  
+                TracePrint("未能发现通用返回按钮")
+                ShowMessage "请确保在主界面..."
+            End If
+            If (全图找手指()) Then 
+                TracePrint("还有未完成的引导")
+                ShowMessage "还有未完成的引导"
+                开始练级 ()
+            End If
+            Delay 1500
+            点击 (Array(112,351, 30, 30, "聊天小喇叭"))
+            Delay 1500
+            点击 (Array(557,6, 40, 40, "世界频道"))
+            Delay 1500
+        End If
+    Wend
+
+    Dim 被禁言_多点找色值=Array("A07125","5|1|F1F0F0,11|2|F8F7F6,11|15|FDFCFC,18|15|E7E4E1,4|79|F2F1F1")
+    Dim 继续喊话=True
+    While 继续喊话
+        If system_ios = True Then 
+            点击 (Array(490,98, 20, 100, "输入框"))
+            Delay 1500
+            点击 (Array(251,53, 30, 30, "Q"))
+            Delay 500
+            点击 (Array(251,53, 30, 30, "Q"))
+            Delay 1500
+            点击 (Array(326,22, 30, 30, "inputbar"))
+            Delay 1500
+            点击 (Array(423,884, 30, 30, "done"))
+            Delay 2500
+            点击 (Array(491,583, 20, 20, "发送"))
+            Delay 1500
+        Else 
+            点击 (Array(68,145, 20, 130, "输入框"))
+            Delay 1500
+            Dim myArray=Array(随机字母(),喊话内容)
+            Dim content=Join (myArray,"")
+            InputText content
+            //            InputText 喊话内容
+            Delay 1500
+            点击 (Array(419,781, 40,40, "确定"))
+            Delay 1500
+            点击 (Array(62,458, 20, 30, "发送"))
+            Delay 1500
+        End If
+        
+        Dim   point = 多点找色(134,353,559,792, 被禁言_多点找色值, 0)
+        If point(0) > -1 And point(1) > -1 Then 
+            继续喊话 = False
+            继续喊话 = False
+            当前喊话次数=0
+            TracePrint "宝石用完"
+            ShowMessage "宝石用完"
+            换区 
+          
+        Else 
+            Delay 1500
+            当前喊话次数 = 当前喊话次数 + 1
+            TracePrint( "喊话次数", CInt(喊话换区次数),当前喊话次数)
+            If 当前喊话次数 >= CInt(喊话换区次数) and 自动换区 Then 
+                继续喊话 = False
+                当前喊话次数=0
+                换区()
+            Else 
+                TracePrint "喊话延时中.."
+                Delay 延时
+            End If
+        End If
+        
+       
+    Wend
+End Function
+
+Function 换区
+	
+    Rem huanqurestar
+    Delay 2000
+    Dim 退出游戏提示框_多点比色值="491|412|3E81FF,481|447|FFFFFF,488|461|FFFFFF,482|461|F8F8F8,470|478|FFFFFF"
+    Dim 退出游戏_坐标=Array(140,462,30,80,"退出游戏坐标")  
+    
+    Dim 游戏公告_多点比色值="540|536|CCB691,524|547|CCB691,523|603|938065,548|591|B5A07F,554|224|827971"
+    Dim 游戏公告退出_坐标= Array(115,493,30,30,"游戏公告退出_坐标")
+    
+    Dim 久游SDK左_多点找色值=Array("2E5092","10|0|322928,25|-1|463731,19|6|AD9D91,20|12|436981")
+    Dim 久游SDK右_多点找色值=Array("2E4787","16|-5|321F1D,28|4|486381,2|5|35508F,10|5|2F1F24")
+    
+    Dim 更新游戏_多点比色值="495|550|94DDEE,475|549|4C97BF,144|492|665503,150|628|695508,475|590|4B95BC,475|581|4990B7"
+    Dim 更新游戏确认_坐标=Array(141,488,30,40,"更新游戏确认_坐标")
+    
+    Dim 久游登录框_多点比色值="494|357|0066FF,478|368|0066FF,131|360|0084FF,136|385|FFFFFF,259|785|008AFF"
+    Dim 快速注册_坐标=Array(127,684,30,40,"快速注册_坐标")
+    
+    Dim 久游密码框_多点找色值=Array("B8B8B8","-7|354|0088FF,-10|358|C4DCFF,-10|373|E8F1FF,-10|376|0088FF,-10|381|FFFFFF")
+    Dim 久游密码框_坐标=Array(329,443,30,40,"久游密码框_坐标")
+    Dim 久游进入游戏_坐标=Array( 234,586,30,40,"久游进入游戏_坐标")
+  
+
+    Dim 登录主界面_多点比色值="520|431|7D6453,521|545|222255,523|599|8A7261,520|685|A0836A,228|704|FAE068"
+    Dim 登录主界面2_多点比色值="483|531|21191B,463|577|E6C6B2,460|593|181A2C,481|623|3A2B29,231|716|FAE068"
+
+    Dim 删除账号x_多点找色值=Array("999393","0|11|989393,10|10|999393,10|0|999393,6|5|9A9494,5|0|FFFFFF",10,10,"删除账号x_多点找色值")
+    
+    Dim 有验证码框_多点比色值="343|395|FFFFFF,302|381|FFFFFF,327|386|B5B5B5,325|392|B5B5B5,325|402|B5B5B5"
+
+    Dim 选区界面_多点比色值="558|200|3A3F55,541|205|3A3E55,585|269|304ABE,569|543|3050A5,571|695|2D4CA7,541|281|394062"
+    Dim 选区按钮_坐标=Array(211,542,20,40,"选区_坐标")
+    /*
+    If (定时循环多点比色(久游密码框_多点比色值, 5)) Then 
+        点击 (更新游戏确认_坐标)
+        Delay 1500
+    End If
+    
+      point = 定时循环多点找色(0,0,640,1136,久游密码框_多点找色值, 0,5)
+    If point(0) > -1 And point(1) > -1 Then 
+        点击 (Array(point(0), point(1), 10, 10, "久游密码框_多点找色值"))
+        Delay 2000
+    End If
+    */
+
+    Dim isExitAlert=多点比色(退出游戏提示框_多点比色值)
+    While not isExitAlert
+        KeyPress "back"
+        Delay 4000
+        If 定时循环多点比色(退出游戏提示框_多点比色值,5,0) Then 
+            isExitAlert=True
+            点击 (退出游戏_坐标)
+            TracePrint "退出游戏成功"
+            Delay 2000
+        End If
+    Wend
+    Delay 5000
+    Rem restartapp
+    RunApp "com.sincetimes.warship2.uc"
+    Delay 5000
+   
+
+    Dim opentheApp=False
+    While not opentheApp//只有打开游戏公告界面才表示打开了游戏
+        If 多点比色(游戏公告_多点比色值) Then 
+            点击(游戏公告退出_坐标)
+            opentheApp = True
+            Delay 2000
+        End If
+
+        If (定时循环多点比色(更新游戏_多点比色值, 5,0)) Then 
+            点击 (更新游戏确认_坐标)
+            Delay 1500
+            Delay 20000
+        End If
+        
+     
+        If 多点比色(久游登录框_多点比色值) Then 
+            opentheApp = True
+            Delay 2000
+        End If
+    Wend
+    
+  
+    If (定时循环多点比色(久游登录框_多点比色值, 5,0)) Then //登陆框
+        //先删除旧的账号，防止账号满
+        点击 Array(368, 746, 20, 20, "点击账号下拉框")
+        Delay 3000
+        point = 定时循环多点找色(6,685,633,806,删除账号x_多点找色值, 0,5,-1)
+        If point(0) > -1 And point(1) > -1 Then 
+            点击 (Array(point(0), point(1), 10, 10, "删除账号x_多点找色值"))
+            Delay 3000
+            点击 (Array(247, 687, 30, 30, "确定删除账号"))
+            Delay 3000
+            点击 (Array( 370,178, 30, 30, "关闭删除窗"))
+            Delay 2000
+        End If
+         
+        If 多点比色("148|671|939393,145|701|909090,140|769|B0B0B0,147|792|969696,146|743|A0A0A0") Then //有快速注册按钮
+            点击 (快速注册_坐标)
+         	        
+            Delay 2500
+        Else 
+            TracePrint "换区没有注册按钮"
+            KillApp "com.sincetimes.warship2.uc"
+            Delay 5000
+            Goto restartapp
+        End If
+         
+
+
+        Dim   point = 定时循环多点找色(0,0,640,1136,久游密码框_多点找色值, 0,5,-1)
+        If point(0) > -1 And point(1) > -1 Then 
+            点击 (Array(point(0), point(1), 10, 10, "久游密码框_多点找色值"))
+            Delay 2000
+            InputText "a123456"
+            Delay 3000
+            
+            If 多点比色(有验证码框_多点比色值) Then 
+                点击 (Array(296,481, 10, 10, "久游密码框验证码"))
+                Delay 2000
+                If 验证码(294,607,358,793) Then  	// 验证码实例
+                    TracePrint "验证码",Reply
+                    InputText Reply
+                    Delay 3000
+                End If
+            End If
+ 
+            点击 (久游进入游戏_坐标)
+            Delay 5000
+        Else 
+            TracePrint "没找到久游密码框"
+        End If
+                
+        
+        
+    Else //已登录
+        //        point = 定时循环多点找色(0,0,640,80,久游SDK左_多点找色值, 0,5,-1)
+        //        If point(0) > -1 And point(1) > -1 Then 
+        //            点击 (Array(point(0), point(1), 0, 0, "久游SDK左_多点找色值"))
+        //            Delay 2000
+        //        Else 
+        //            point = 定时循环多点找色(0,0, 0, 0,久游SDK右_多点找色值, 0, 5,-1)
+        //            If point(0) > -1 And point(1) > -1 Then 
+        //                点击 (Array(point(0), point(1), 0, 0, "久游SDK右_多点找色值"))
+        //                Delay 2000
+        //            Else 
+        //                While True
+        //                    ShowMessage ("无法找到久游SDK！！！！请确认版本")
+        //                    Delay 5000
+        //                Wend
+        //            End If
+        //        End If
+        //            
+        //        点击 (Array(574,9, 10, 10, "点击久游头像"))
+        //        Delay 2500
+        //        If 定时循环多点比色("118|505|0075FF,138|506|0066FF,119|529|0081FF,138|529|006FFF,118|559|665C5B,137|558|655B5B",3,0) Then 
+        //            点击 (Array(114, 503, 10, 10, "关闭久游自动登录"))
+        //            Delay 1500
+        //            Goto huanqurestar
+        //        Else 
+        //            ShowMessage "久游不需要关闭自动"
+        //            TracePrint "久游不需要关闭自动"
+        //        End If
+        循环错误输出 "请关闭久游自动登录"
+    End If
+    
+  
+    If 定时循环多点比色(游戏公告_多点比色值,5,0) Then 
+        点击(游戏公告退出_坐标)
+        opentheApp = True
+        Delay 2000
+    Else 
+        循环错误输出 "没找到公告11"
+    End If
+    
+    If 定时循环多点比色(游戏公告_多点比色值,5,0) Then 
+        点击(游戏公告退出_坐标)
+        opentheApp = True
+        Delay 2000
+    Else 
+        TracePrint "没找到公告22"
+    End If
+  
+    If (定时循环多点比色(登录主界面_多点比色值, 5,0))    Then 
+        Delay 1500
+        点击 (选区按钮_坐标)
+        Delay 3500
+    Else 
+        If (定时循环多点比色(登录主界面2_多点比色值, 5,0))    Then 
+            Delay 1500//这个界面晚上和白天不一样
+            点击 (选区按钮_坐标)
+            Delay 3500
+        Else 
+            循环错误输出 "不在选区登录主界面11"
+        End If
+
+    End If
+    
+    选服务器()
+    Delay 3000
+    
+    Rem reClickLogin
+    If (定时循环多点比色(登录主界面_多点比色值, 5,0)) Then 
+        Delay 3500
+        点击 (Array(131,444,30,30,"游戏登录按钮"))
+        Delay 4500
+        If (定时循环多点比色(登录主界面_多点比色值, 5, 0)) Then 
+            ShowMessage "登陆按钮点击没反应"
+            Goto reClickLogin
+        End If
+    Else 
+        循环错误输出 "不在登录主界面22"   
+    End If
+   
+    Delay 5000
+    当前换区次数=当前换区次数+1
+    重置全局变量()
+End Function
+//————————————————————————————————主函数---------------------------------------------
+
+Function 任务主函数
+    If authorization() Then 
+        ShowMessage ("权限验证成功")
+        While True
+            If 一键升级 Then
+                ShowMessage "启动一键升级"&"舰指太平洋"
+                Delay 1000
+                练级() 	
+                ShowMessage "当前等级已经可以喊话了.."
+                Delay 1000
+            End If
+            If 喊话功能 Then 
+                ShowMessage "启动自动喊话"&"舰指太平洋"
+                喊话()
+            End If
+            //持续震动1000毫秒（1秒）
+            Vibrate 1000 
+            ShowMessage "脚本已停止..."
+            Delay 2500
+        Wend
+    Else 
+        While True
+            Delay 2000
+            ShowMessage ("权限验证失败")
+            Vibrate 1000 
+            Delay 5000
+        Wend
+    End If
+
+End Function
+
+任务主函数()
+
+//_________________________________________权限流程_____________________________________________________
+//从套壳获取 token
+Function getToken()
+    //var/mobile/Applications //ios 7
+    ///var/mobile/Containers/Data/Application  // >ios 8
+    Dim tokenPath
+    Dim isIOS= Dir.Exist("/var/mobile/")
+
+    If isIOS >0 Then 
+        Dim isIOS8= Dir.Exist("/var/mobile/Containers/Data/Application/") 
+        Dim prefix="/var/mobile/Applications/"
+        If isIOS8>0 Then 
+            prefix = "/var/mobile/Containers/Data/Application/"
+        End If
+        dim pathArray=  ShanHai.ScanPath (prefix, true)
+        For Each path In pathArray
+            Dim MyArray(3)
+            MyArray(0) =prefix
+            MyArray(1) = path
+            MyArray(2) = "/Library/Caches/interesting/token_log.txt"
+            Dim fullPath=Join(MyArray,"")
+            If Dir.Exist(fullPath) > 0 Then 
+                tokenPath = fullPath
+                Exit For
+            End If
+        Next
+        
+    Else 
+        //安卓路径
+        TracePrint ("安卓系统")
+        tokenPath="/sdcard/interesting/yzzr/token_log.txt"
+    End If
+  
+    Dim tempToken=File.Read(tokenPath)
+    getToken = anlyToken(tempToken)
+
+End Function
+//解密token
+Function anlyToken(orgToken)
+    //获取设备token
+    Dim deviceToken= ShanHai.Base64De (orgToken)
+    //删除l
+    Dim lorg= Len (deviceToken)-1
+    Dim delL=Mid(deviceToken,1,lorg)
+    //删除c
+    Dim length= Len (delL)-1
+    Dim delC=Mid(delL,2,length)
+    //删除W
+    Dim wIndex=3
+    length=Len(delL)-wIndex
+    Dim preW=Mid(delC,1,wIndex)
+    Dim suffixW=Mid(delC,wIndex+2,length)
+    Dim reallyToken= Join( Array(preW, suffixW), "")
+    //TracePrint(reallyToken)
+    anlyToken= reallyToken
+End Function
+
+
+Function authorization()
+	
+    ShowMessage ("验证权限中")
+    authorization=False
+    Dim imei=GetDeviceID()
+    TracePrint "imei is" &imei
+    If  IsNull(imei) Then  
+        ShowMessage ("无法获取设备信息")
+        Delay 3000
+    Else 
+    
+        Dim reallyToken= getToken()
+        TracePrint reallyToken
+        If  (reallyToken=null or reallyToken="") Then 
+            ShowMessage ("请安装脚本配套APP")
+            Delay 3000
+        Else 
+            //解析出token中的imei
+            Dim pos=  InStr(1, reallyToken, ".")+1
+            Dim tokenArray=Split(reallyToken,".")
+            Dim tokenResultContent=tokenArray(1)
+         
+            Dim json_content=  ShanHai.Base64De (tokenResultContent)
+            TracePrint (json_content)
+            Dim contentTable=Encode.JsonToTable(json_content)
+            Dim token_imei=contentTable["IMEI"]
+            TracePrint token_imei
+  
+            If token_imei = imei Then 
+                Dim params="x-auth-token="&reallyToken&"&IMEI="&imei&"&scriptVersion="&scriptVersion&"&scriptNumber="&scriptNumber
+                TracePrint params
+                Dim urlStr="http://www.play666.cn:8080/app/userequipment/is-can-run-script"
+                Dim result= URL.Post(urlStr,params)
+                TracePrint(result)
+                Dim resultTable= Encode.JsonToTable(result)
+                Dim resultCode= resultTable["resultCode"]
+
+                If resultCode = 1 Then 
+                    //	Dim resultObj= resultTable["resultObj"]
+                    authorization=True
+                Else 
+                    ShowMessage (resultTable["resultMsg"])
+                    authorization = False
+                    Delay 3000
+                End If
+                TracePrint (resultTable["resultMsg"])
+            Else 
+                TracePrint ("imei 和token_imei不一致，权限验证失败")
+                ShowMessage ("请勿破解脚本")
+                Delay 3000
+            End If
+        End If
+    End If
+End Function
+
+
+
+Function sumbitRunningScript()
+    ShowMessage ("提交运行状态")
+    Dim reallyToken= getToken()
+    Dim params="x-auth-token="&reallyToken&"&status="&"FREE"&"&scriptNumber="&"20161130204111"////FREE RUNNING RUN_ERROR
+    TracePrint(params)
+    Dim urlStr="http://www.play666.cn:8080/app/userequipment/submit-script-run-status"
+    Dim result= URL.Post(urlStr,params)
+    TracePrint(result)
+    Dim resultTable= Encode.JsonToTable(result)
+    Dim resultCode= resultTable["resultCode"]
+
+    If resultCode = 1 Then 
+        //	Dim resultObj= resultTable["resultObj"]
+    Else 
+        ShowMessage (resultTable["resultMsg"])
+        Delay 3000
+    End If
+    TracePrint (resultTable["resultMsg"])
+	
+End Function
+/////////////////////////工具方法//////////////////////////////////////////
+Function 循环错误输出(content)
+    While True
+        TracePrint  content
+        ShowMessage content
+        Delay 5000
+    Wend
+End Function
+
+Function 定时循环多点比色(colors, continueconut, dealy)
+    If dealy <=0	 Then 
+        dealy=1000
+    End If
+    If not continueconut Then 
+        continueconut = 5
+    End If
+    Dim Whileflag = True
+    Dim 等待次数 = 0
+    While Whileflag
+        If 多点比色(colors) Then 
+            定时循环多点比色 = True
+            Whileflag = False
+        Else 
+            等待次数 = 等待次数 + 1
+            Delay dealy
+            If 等待次数 > continueconut Then 
+                定时循环多点比色 = False
+                Whileflag = False
+            End If
+        End If
+    Wend
+End Function
+
+Function 定时循环多点找色(x, y, w, h, colors, dirs, continueconut,dealy)
+    If dealy <=0	 Then 
+        dealy=1000
+    End If
+    If not continueconut Then 
+        continueconut = 5
+    End If
+    Dim Whileflag = True
+    Dim 等待次数 = 0
+    Dim point
+    While Whileflag
+    	
+        point = 多点找色(x, y, w, h, colors, dirs)
+        TracePrint("定时循环多点找色 "&等待次数)
+        If point(0) > -1 And point(1) > -1 Then 
+            定时循环多点找色 =point
+            Whileflag = False
+        Else 
+            等待次数 = 等待次数 + 1
+            Delay dealy
+            If 等待次数 > continueconut Then 
+                定时循环多点找色 = Array(-1,-1)
+                Whileflag = False
+            End If
+        End If
+    Wend
+End Function
+
+Function 向下取整(divisor, dividend)
+    Dim result = Int(divisor /dividend)
+    If (divisor mod dividend) = 0 Then 
+        result = result - 1
+    End If
+    向下取整 = result
+    TracePrint result, Int(divisor /dividend)
+End Function
+
+Function 单点比色(arr)
+    Dim flag = False
+    Dim x = arr(0),y = arr(1),color= arr(2)
+    If CmpColor(x, y, color, 1) > -1 Then 
+        flag = True
+		
+        TracePrint "单点比色",x,y,color
+    End If
+	
+    单点比色 = flag
+End Function
+
+Function 多点比色(colors)
+    Dim flag = False
+    If CmpColorEx(colors, 0.9) = 1 Then
+        flag = True 		
+    End If
+    多点比色 = flag
+    //	TracePrint "多点比色",flag
+End Function
+
+
+Function 多点找色(x1,y1,x2,y2, colors, dirs)
+    Dim first_color=colors(0), offset_color=colors(1)
+    Dim intX,intY
+    FindMultiColor x1,y1,x2,y2,first_color,offset_color,dirs,0.95,intX,intY
+    多点找色 = Array(intX,intY)
+    //    TracePrint DateTime.Format("%Y-%m-%d %H:%M:%S"), "多点找色", x1, y1, x2, y2, colors(0), colors(1), intX, intY
+End Function
+
+Function 是否存在图片(arr, img)
+    TracePrint DateTime.Format("%Y-%m-%d %H:%M:%S"),"是否存在图片",img,arr(0),arr(1),arr(2),arr(3)
+					
+    Dim x1 = arr(0),y1 = arr(1),x2 = arr(2),y2 = arr(3)
+    Dim intX,intY
+    FindPic x1,y1,x2,y2, "Attachment:"&img, "000000", 0, 0.8, intX, intY
+    If intX > -1 AND intY > -1 Then 
+        TracePrint DateTime.Format("%Y-%m-%d %H:%M:%S"),CStr(intX),CStr(intY),img
+        是否存在图片 = True
+    Else 
+        TracePrint DateTime.Format("%Y-%m-%d %H:%M:%S"),"找不到图片",img
+        是否存在图片 = False
+    End If
+End Function
+Function 找图片(arr, img)
+    //    TracePrint DateTime.Format("%Y-%m-%d %H:%M:%S"),"是否存在图片",img,arr(0),arr(1),arr(2),arr(3)
+					
+    Dim x1 = arr(0),y1 = arr(1),x2 = arr(2),y2 = arr(3)
+    Dim intX,intY
+    FindPic x1,y1,x2,y2, "Attachment:"&img, "000000", 0, 0.8, intX, intY
+    If intX > -1 AND intY > -1 Then 
+        TracePrint DateTime.Format("%Y-%m-%d %H:%M:%S"),CStr(intX),CStr(intY),img
+    Else 
+        TracePrint DateTime.Format("%Y-%m-%d %H:%M:%S"),"找不到图片",img
+
+    End If
+    找图片 = Array(intX,intY)
+End Function
+
+Dim lastClickName
+Dim equalClickCount=0
+Function 点击(arr)
+    if lastClickName = arr(4) Then 
+        equalClickCount = equalClickCount + 1
+    Else 
+        equalClickCount=0
+    End If
+    If equalClickCount>6 Then 
+        Delay (equalClickCount-6)*800+2000
+    End If
+	
+    Dim x1 = arr(0),y1 = arr(1),x2 = x1+arr(2),y2 = y1+arr(3)
+    Dim x = 随机(x1,x2)
+    Dim y = 随机(y1,y2)
+    TracePrint "点击",x,y,arr(0),arr(1),arr(2),arr(3),arr(4)
+    Tap x, y
+    lastClickName = arr(4)
+End Function
+
+Function 滑动(arr1,arr2)
+    //TracePrint DateTime.Format("%Y-%m-%d %H:%M:%S"),"滑动", arr1(0), arr1(1), arr1(2), arr1(3), arr2(0), arr2(1), arr2(2), arr2(3)
+    Dim x1 = arr1(0),y1 = arr1(1),x2 = x1+arr1(2),y2 = y1+arr1(3)
+    Dim x3 = arr2(0),y3 = arr2(1),x4 = x3+arr2(2),y4 = y3+arr2(3)
+    Dim scroll_x1 = 随机(x1,x2)
+    Dim scroll_y1 = 随机(y1,y2)
+    Dim scroll_x2 = 随机(x3,x4)
+    Dim scroll_y2 = 随机(y3,y4)
+	
+    TracePrint DateTime.Format("%Y-%m-%d %H:%M:%S"),"滑动", scroll_x1, scroll_y1, scroll_x2, scroll_y2
+    TouchDown scroll_x1, scroll_y1, 1
+    TouchMove scroll_x2, scroll_y2, 1, 300
+    Delay 500
+    TouchUp 1
+End Function
+
+Function 滑动_不抬起(arr1,arr2,dely)
+    //TracePrint DateTime.Format("%Y-%m-%d %H:%M:%S"),"滑动", arr1(0), arr1(1), arr1(2), arr1(3), arr2(0), arr2(1), arr2(2), arr2(3)
+    Dim x1 = arr1(0),y1 = arr1(1),x2 = x1+arr1(2),y2 = y1+arr1(3)
+    Dim x3 = arr2(0),y3 = arr2(1),x4 = x3+arr2(2),y4 = y3+arr2(3)
+    Dim scroll_x1 = 随机(x1,x2)
+    Dim scroll_y1 = 随机(y1,y2)
+    Dim scroll_x2 = 随机(x3,x4)
+    Dim scroll_y2 = 随机(y3,y4)
+	
+    TracePrint DateTime.Format("%Y-%m-%d %H:%M:%S"),"滑动", scroll_x1, scroll_y1, scroll_x2, scroll_y2
+    TouchDown scroll_x1, scroll_y1, 1
+    TouchMove scroll_x2, scroll_y2, 1, 300
+    If dely > 0 Then 
+        Delay dely
+        TouchUp 1
+    End If
+    Delay 500
+End Function
+
+Function 连续滑动(arr1, arr2, count)
+    Dim tempcount=0
+    While tempcount<count
+        滑动( arr1, arr2)
+        TracePrint "连续滑动",tempcount
+        tempcount=tempcount+1
+    Wend
+    Delay 2000
+
+End Function
+
+Function 随机(min, max)
+    Randomize  
+    Dim ret = Int(((max - min) * Rnd()) + min)
+    随机 = ret	
+    //	TracePrint "随机", min, max, ret
+End Function
+
+Function 比例换算(参数)
+    Dim arr(),arr_bl(),i,n
+    
+    If IsArray(参数) Then 
+        arr=参数
+    Else
+        arr=Array(参数)
+    End If
+    
+    arr_bl=Array(win_w,win_h)
+    i = 0
+    
+        
+    For Each n In arr
+        If IsNumeric(n) = True Then 
+            arr(i)=n*arr_bl(i Mod 2)
+        ElseIf InStr(1,n,"|")>0 Then
+            Dim arr1(),str,arr2()
+            arr1=Split(arr(i),",")
+            str = ""
+            For Each n In arr1
+                arr2 = Split(n, "|")
+                If 自制UBound(arr2) = 2 Then 
+                    str = arr(i)
+                Else
+                    str=str & arr2(0)*win_w & "|" & arr2(1)*win_h & "|" & arr2(2) & ","
+                End If
+            Next
+            arr(i)=Left(str,Len(str)-1)
+            //            Exit For
+        Else 
+        
+        End If
+        i=i+1
+    Next
+    TracePrint arr(0)
+    If IsArray(参数) Then 
+        比例换算=arr
+    Else
+        比例换算=arr(0)
+    End If
+End Function
+
+Function 自制UBound(arr)
+    Dim i:i=0
+    For Each a In arr 
+        i=i+1
+    Next
+    自制UBound=i
+End Function
+
+Function 随机字母()
+    Dim name3 = Array("w","e","r","q","t","y","u","i","o","p","a","s","d","f","g","h","j","k","l","z",_
+	"x","c","v","b","n","m","aa","vv","cc","xx","zz","qq","ww","ee","rr","tt","yy","uu","ii","oo","pp")	
+    Dim 字数个数 = UBound(name3)
+    TracePrint "zishu3", 字数个数
+    Randomize  
+    Dim ret = Int(((字数个数 - 1) * Rnd()) + 1)
+    随机字母 = name3[ret]
+End Function
+
+Function 连续点击(arr,count,dely)
+    Dim tempcount=0
+    Dim x1 = arr(0),y1 = arr(1),x2 = x1+arr(2),y2 = y1+arr(3)
+    Dim x = 随机(x1,x2)
+    Dim y = 随机(y1,y2)
+    While tempcount<count
+        TracePrint "连续点击",x,y,arr(0),arr(1),arr(2),arr(3),arr(4),tempcount
+        Tap x, y
+        Delay 随机(dely, dely+300)
+        tempcount=tempcount+1
+    Wend
+    Delay 1000
+End Function
+
+Function 生成随机账号()
+    Dim 账号
+    账号 = 随机字母()
+    Delay 1000
+    账号 = 账号 & 随机字母()
+    Delay 300
+    账号 = 账号 & CStr(随机(12000, 8000003))
+    TracePrint "随机账号",账号
+    生成随机账号 = 账号
+End Function
+
+
+Function 验证码(x1, y1, x2, y2)
+    Dim snapPath= GetTempDir()&"test.png"
+    SnapShot snapPath,x1,y1,x2,y2 //区域截图
+    TracePrint "截图完成"	
+    // T2004 类型为 1~4位纯字母  T2005 1~5位纯字母  T3004 1~4位数字字母  T3005 1~5位数字字母  30位超时时间
+    Reply = SendFileEx("381785251|6ACDC821FD886EF1", "T2004",snapPath, 30 , 0 ,"备注" )	//同步发题方式 
+    If IsRight(Reply) = True Then 
+        // Reply 验证码结果
+        验证码 = True 
+    Else 
+        验证码 = False
+    End If
+End Function
+
+
+
+'*********************************以下为封装好的代码（建议放在代码最后面），没完全理解前请不要随意修改***********************************
+
+Sub GetHaoHost()
+    dim re  = URL.Get ("http://3.haoi23.net/svlist.html", 10)
+    Rem reget
+    HaoHOST = ""
+    If InStr(1,re, "===")  Then 
+        Dim is1 
+        Dim is2
+        is1 = InStr(1,re, "===")
+        is2 = InStr(1,re, "+++")
+        re = Mid(re, is1 + 3, is2 - is1 - 3)
+        If InStr(1, re, "--") Then 
+            Dim s
+            s = Split(re, "--")
+            HaoHOST = s(  haoi.RndEx(0, ubound(s) ) )
+        Else 
+            HaoHOST = re
+        End if
+        if HaoHOST = "" then
+            Delay 500
+            re  = URL.Get ("http://2.haoi23.net/svlist.html", 20)
+            goto reget
+        End If
+        TracePrint HaoHOST
+    End If
+End Sub
+
+Function SendFileEx(MyUserStr, GameID, FilePath, TimeOut,  LostPoint, BeiZhu)
+    Dim Answer
+    HaoTid = HSendFile(MyUserStr, GameID, FilePath, TimeOut, LostPoint, BeiZhu)
+    Dim TID
+    TID = HaoTid
+    If IsRight(TID) Then 
+        For i = 1 To 999
+            Delay 1000
+            Answer = HGetAnswer(TID)
+            If Answer <> "" Then 
+                SendFileEx = Answer
+                Exit for
+            End If
+        Next
+    Else
+        SendFileEx = TID
+    End If
+End Function
+
+Function HSendFile(MyUserStr,GameID,FilePath,TimeOut,LostPoint,BeiZhu)
+    Dim re
+    Dim data 
+	
+    data = "UserStr=" & MyUserStr
+    data = data & "&GameID=" & GameID
+    data = data & "&TimeOut=" & TimeOut
+    data = data & "&Rebate=" & HaoRebate
+    data = data & "&DaiLi=haoi" 
+    data = data & "&Kou=" & LostPoint
+    data = data & "&BeiZhu=" & BeiZhu
+    data = data & "&ver=mweb"
+    data = data & "&key=" & haoi.RndEx(0, 9) & haoi.RndEx(0, 9) & haoi.RndEx(0, 9) & haoi.RndEx(0, 9) & haoi.RndEx(0, 9) & haoi.RndEx(0, 9) & haoi.RndEx(0, 9) & haoi.RndEx(0, 9) & haoi.RndEx(0, 9) & haoi.RndEx(0, 9)
+    TracePrint "组建开始" & now()
+    Dim base=haoi.ReadFileBase(FilePath)
+    data = data & "&Img=" & replace(base,"+","%2b")
+    TracePrint "组建结束" & now()
+    If HaoHOST = "" Then GetHaoHost
+	
+    re = URL.Post("http://" & HaoHOST & "/UploadBase64.aspx", data, 60)
+    if re = null then re = ""
+    if instr(1,re , "<") <> 0 then re = "#网络错误"
+    HSendFile = re
+    If IsRight(re) = False Then  GetHaoHost
+    TracePrint "好爱发送文件：" & re
+End Function
+
+Function HGetAnswer(tid)
+    If HaoHOST = "" Then GetHaoHost
+    Dim re
+    re = URL.Post("http://" & HaoHOST & "/getanswer.aspx", "id=" & tid &"&r=" & haoi.rndex(0,9)& haoi.rndex(0,9)& haoi.rndex(0,9)& haoi.rndex(0,9)& haoi.rndex(0,9)& haoi.rndex(0,9)& haoi.rndex(0,9), 20)
+    if re = null then re = ""
+    if instr(1,re , "<") <> 0 then re = "#网络错误"
+    HGetAnswer = re
+    If re <> "" Then 
+        TracePrint "好爱获取答案：" & re
+    End If
+End Function
+
+Function HSendError(tid)
+    If HaoHOST = "" Then GetHaoHost
+    Dim re
+    re = URL.Post("http://" & HaoHOST & "/senderror.aspx", "id=" & tid &"&r=" & haoi.rndex(0,9)& haoi.rndex(0,9)& haoi.rndex(0,9)& haoi.rndex(0,9)& haoi.rndex(0,9)& haoi.rndex(0,9)& haoi.rndex(0,9), 20)
+    if re = null then re = ""
+    if instr(1,re , "<") <> 0 then re = "#网络错误"
+    HSendError = re
+    TracePrint "好爱申诉错题：" & re
+End Function
+
+Function IsRight(thetxt)
+    IsRight = false
+    If thetxt = "" Then 
+        IsRight = false
+    ElseIf len(thetxt)>0 then
+        If Left(thetxt, 1) = "#" Then 
+            IsRight = false
+        Else 
+            IsRight = true
+        End If
+    End If
+End Function
+
+Function HGetPoint(UserStr)
+    If HaoHOST = "" Then GetHaoHost
+    Dim re
+    re = URL.Post("http://" & HaoHOST & "/GetPoint.aspx", "User=" & UserStr &"&r=" & haoi.rndex(0,9)& haoi.rndex(0,9)& haoi.rndex(0,9)& haoi.rndex(0,9)& haoi.rndex(0,9)& haoi.rndex(0,9)& haoi.rndex(0,9)& haoi.rndex(0,9), 20)
+    if re = null then re = ""
+    if instr(1,re , "<") <> 0 then re = "#网络错误"
+    HGetPoint = re
+    TracePrint "好爱查询题分：" & re
+End Function
+
+'*********************************以上为封装好的代码（建议放在代码最后面），没完全理解前请不要随意修改***********************************
